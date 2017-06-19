@@ -1,0 +1,92 @@
+# depslib dependency file v1.0
+1481604909 source:/home/bingyu/Work/SmBrkSvr/commons.cpp
+	"commons.h"
+	<iostream>
+	<boost/static_assert.hpp>
+	<boost/type_traits/is_same.hpp>
+	<boost/weak_ptr.hpp>
+	<errno.h>
+	<sys/types.h>
+	<sys/wait.h>
+	<sys/time.h>
+	<sys/syscall.h>
+	<signal.h>
+	<fcntl.h>
+	<sys/eventfd.h>
+
+1495874404 /home/bingyu/Work/SmBrkSvr/Inc/commons.h
+	"gconf.h"
+	<unistd.h>
+	<stdlib.h>
+	<stdio.h>
+	<poll.h>
+
+1495873357 /home/bingyu/Work/SmBrkSvr/Inc/gconf.h
+	<stdint.h>
+	<vector>
+	<string>
+
+1495875493 source:/home/bingyu/Work/SmBrkSvr/gconf.cpp
+	"gconf.h"
+	"readconf.h"
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	<sys/types.h>
+	<string>
+	<iostream>
+
+1481596632 /home/bingyu/Work/SmBrkSvr/Inc/readconf.h
+	<map>
+	<string>
+
+1495874689 source:/home/bingyu/Work/SmBrkSvr/main.cpp
+	"commons.h"
+	<muduo/base/Logging.h>
+	<muduo/base/CurrentThread.h>
+	"iostream"
+	"readconf.h"
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Logging.h
+	<muduo/base/LogStream.h>
+	<muduo/base/Timestamp.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/LogStream.h
+	<muduo/base/StringPiece.h>
+	<muduo/base/Types.h>
+	<assert.h>
+	<string.h>
+	<string>
+	<boost/noncopyable.hpp>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/StringPiece.h
+	<string.h>
+	<iosfwd>
+	<muduo/base/Types.h>
+	<string>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Types.h
+	<stdint.h>
+	<string>
+	<ext/vstring.h>
+	<ext/vstring_fwd.h>
+	<assert.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Timestamp.h
+	<muduo/base/copyable.h>
+	<muduo/base/Types.h>
+	<boost/operators.hpp>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/copyable.h
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/CurrentThread.h
+	<stdint.h>
+
+1481596606 source:/home/bingyu/Work/SmBrkSvr/readconf.cpp
+	"commons.h"
+	<fstream>
+	<iostream>
+	<cctype>
+	<algorithm>
+	"readconf.h"
+
