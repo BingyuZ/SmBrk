@@ -7,14 +7,14 @@
 //============================================================================
 
 #include <muduo/base/Mutex.h>
-//#include <muduo/base/Logging.h>
-//#include <muduo/net/EventLoop.h>
+#include <muduo/base/Logging.h>
+#include <muduo/net/EventLoop.h>
 #include <muduo/net/EventLoopThread.h>
 #include <muduo/net/InetAddress.h>
 #include <muduo/net/inspect/Inspector.h>
 
 #include <boost/bind.hpp>
-#include <boost/random.cpp>
+#include <boost/random.hpp>
 
 #include <string.h>
 #include <unistd.h>
@@ -34,6 +34,7 @@ using namespace std;
 #include "commons.h"
 
 #include "ConnMan.h"
+#include "servers.h"
 
 boost::mt19937 gRng(2323u);
 
@@ -63,7 +64,8 @@ void SBSMain(void)
 	Inspector ins(t.startLoop(), InetAddress(gConf.monPort_), "Inspector");
 
 	// Start Listener
-    AgtServer aServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)));
+    AgtServer aServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
+                      gConf.agtCmax_);
     aServer.start();
 
 	// Add inspector entrance

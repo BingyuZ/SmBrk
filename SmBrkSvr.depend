@@ -90,3 +90,218 @@
 	<algorithm>
 	"readconf.h"
 
+1481604909 source:/home/bingyu/Work/SmBrkSvr/src/commons.cpp
+	"commons.h"
+	<iostream>
+	<boost/static_assert.hpp>
+	<boost/type_traits/is_same.hpp>
+	<boost/weak_ptr.hpp>
+	<errno.h>
+	<sys/types.h>
+	<sys/wait.h>
+	<sys/time.h>
+	<sys/syscall.h>
+	<signal.h>
+	<fcntl.h>
+	<sys/eventfd.h>
+
+1495874404 /home/bingyu/Work/SmBrkSvr/inc/commons.h
+	"gconf.h"
+	<unistd.h>
+	<stdlib.h>
+	<stdio.h>
+	<poll.h>
+
+1495931628 /home/bingyu/Work/SmBrkSvr/inc/gconf.h
+	<stdint.h>
+	<vector>
+	<string>
+
+1495931625 source:/home/bingyu/Work/SmBrkSvr/src/gconf.cpp
+	"gconf.h"
+	"readconf.h"
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	<sys/types.h>
+	<string>
+	<iostream>
+
+1481596632 /home/bingyu/Work/SmBrkSvr/inc/readconf.h
+	<map>
+	<string>
+
+1495874689 source:/home/bingyu/Work/SmBrkSvr/src/main.cpp
+	"commons.h"
+	<muduo/base/Logging.h>
+	<muduo/base/CurrentThread.h>
+	"iostream"
+	"readconf.h"
+
+1481596606 source:/home/bingyu/Work/SmBrkSvr/src/readconf.cpp
+	"commons.h"
+	<fstream>
+	<iostream>
+	<cctype>
+	<algorithm>
+	"readconf.h"
+
+1497948155 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
+	"zecodec.h"
+
+1497949367 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
+	<muduo/base/Logging.h>
+	<muduo/net/Buffer.h>
+	<muduo/net/Endian.h>
+	<muduo/net/TcpConnection.h>
+	<boost/function.hpp>
+	<boost/bind.hpp>
+	<boost/noncopyable.hpp>
+	<cassert>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Buffer.h
+	<muduo/base/copyable.h>
+	<muduo/base/StringPiece.h>
+	<muduo/base/Types.h>
+	<muduo/net/Endian.h>
+	<algorithm>
+	<vector>
+	<assert.h>
+	<string.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Endian.h
+	<stdint.h>
+	<endian.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/TcpConnection.h
+	<muduo/base/StringPiece.h>
+	<muduo/base/Types.h>
+	<muduo/net/Callbacks.h>
+	<muduo/net/Buffer.h>
+	<muduo/net/InetAddress.h>
+	<boost/any.hpp>
+	<boost/enable_shared_from_this.hpp>
+	<boost/noncopyable.hpp>
+	<boost/scoped_ptr.hpp>
+	<boost/shared_ptr.hpp>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Callbacks.h
+	<boost/function.hpp>
+	<boost/shared_ptr.hpp>
+	<muduo/base/Timestamp.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/InetAddress.h
+	<muduo/base/copyable.h>
+	<muduo/base/StringPiece.h>
+	<netinet/in.h>
+
+1497948245 source:/home/bingyu/Work/SmBrkSvr/src/SmBrkrS.cpp
+	<muduo/base/Mutex.h>
+	<muduo/base/Logging.h>
+	<muduo/net/EventLoop.h>
+	<muduo/net/EventLoopThread.h>
+	<muduo/net/InetAddress.h>
+	<muduo/net/inspect/Inspector.h>
+	<boost/bind.hpp>
+	<boost/random.hpp>
+	<string.h>
+	<unistd.h>
+	<iostream>
+	<ctime>
+	"gconf.h"
+	"commons.h"
+	"ConnMan.h"
+	"servers.h"
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Mutex.h
+	<muduo/base/CurrentThread.h>
+	<boost/noncopyable.hpp>
+	<assert.h>
+	<pthread.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/EventLoop.h
+	<vector>
+	<boost/any.hpp>
+	<boost/function.hpp>
+	<boost/noncopyable.hpp>
+	<boost/scoped_ptr.hpp>
+	<muduo/base/Mutex.h>
+	<muduo/base/CurrentThread.h>
+	<muduo/base/Timestamp.h>
+	<muduo/net/Callbacks.h>
+	<muduo/net/TimerId.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/TimerId.h
+	<muduo/base/copyable.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/EventLoopThread.h
+	<muduo/base/Condition.h>
+	<muduo/base/Mutex.h>
+	<muduo/base/Thread.h>
+	<boost/noncopyable.hpp>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Condition.h
+	<muduo/base/Mutex.h>
+	<boost/noncopyable.hpp>
+	<pthread.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Thread.h
+	<muduo/base/Atomic.h>
+	<muduo/base/Types.h>
+	<boost/function.hpp>
+	<boost/noncopyable.hpp>
+	<boost/shared_ptr.hpp>
+	<pthread.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Atomic.h
+	<boost/noncopyable.hpp>
+	<stdint.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/inspect/Inspector.h
+	<muduo/base/Mutex.h>
+	<muduo/net/http/HttpRequest.h>
+	<muduo/net/http/HttpServer.h>
+	<map>
+	<boost/function.hpp>
+	<boost/noncopyable.hpp>
+	<boost/scoped_ptr.hpp>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/http/HttpRequest.h
+	<muduo/base/copyable.h>
+	<muduo/base/Timestamp.h>
+	<muduo/base/Types.h>
+	<map>
+	<assert.h>
+	<stdio.h>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/http/HttpServer.h
+	<muduo/net/TcpServer.h>
+	<boost/noncopyable.hpp>
+
+1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/TcpServer.h
+	<muduo/base/Atomic.h>
+	<muduo/base/Types.h>
+	<muduo/net/TcpConnection.h>
+	<map>
+	<boost/noncopyable.hpp>
+	<boost/scoped_ptr.hpp>
+	<boost/shared_ptr.hpp>
+
+1497940472 /home/bingyu/Work/SmBrkSvr/inc/ConnMan.h
+	<boost/shared_ptr.hpp>
+	<boost/noncopyable.hpp>
+	<stdint.h>
+	<map>
+	<vector>
+	<queue>
+	<stack>
+
+1497949089 /home/bingyu/Work/SmBrkSvr/inc/servers.h
+	<muduo/base/Mutex.h>
+	<muduo/net/EventLoop.h>
+	<muduo/net/TcpServer.h>
+	<muduo/net/InetAddress.h>
+	<muduo/net/TimerId.h>
+	<muduo/net/inspect/Inspector.h>
+	"zecodec.h"
+

@@ -21,29 +21,31 @@ enum {
 struct Session
 {
     uint32_t    agentID_;
+    int32_t     status_;
     uint32_t    password_[4];   // 128 bit
-    TcpConnectionPtr tcpCon_;
-    int         status_;
+//    TcpConnectionPtr tcpCon_;
 };
 
 
 
-class ConnMan
+class ConnMan : boost::noncopyable
 {
 private:
-    void InitSessionPool(void) {
+    void InitSessionPool(void)
+    {
         sPool_.reserve(nsPool_+2);
         //svFree_.reserve(nsPool_+2);
 		for (int i=0; i<nsPool_; i++) {
             sPool_[i].status_ = SES_UNUSED;
-            sPool_[i].tcpCon_ = NULL;
+            //sPool_[i].tcpCon_ = NULL;
             sPool_[i].agentID_ = 0;
 			sFree_.push(i);
 		}
     }
 
 public:
-    ConnMan(int32_t maxSession) : nsPool_(maxSession) {
+    ConnMan(int32_t maxSession) : nsPool_(maxSession)
+    {
         InitSessionPool();
     }
 
@@ -51,7 +53,8 @@ public:
 
     // Get a session ID from an agentID
     // Returns -1 if not found
-    int32_t GetSessionID(uint32_t aID) {
+    int32_t GetSessionID(uint32_t aID)
+    {
         std::map<uint32_t, int32_t>::const_iterator it = agtMap_.find(aID);
         if (it == agtMap_.end()) return -1;     // Agent not found
 

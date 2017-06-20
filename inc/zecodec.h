@@ -8,21 +8,22 @@
 #ifndef ZECODEC_H
 #define ZECODEC_H
 
-
 #include <muduo/base/Logging.h>
 #include <muduo/net/Buffer.h>
 #include <muduo/net/Endian.h>
 #include <muduo/net/TcpConnection.h>
-
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
 #include <boost/noncopyable.hpp>
 
 #include <cassert>
 
+using namespace muduo;
+using namespace muduo::net;
 
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,
         						const muduo::string& message,
-								muduo::Timestamp)> MBlockMessageCallback;
+								muduo::Timestamp) > MBlockMessageCallback;
 
 class MLengthHeaderCodec : boost::noncopyable
 {
@@ -77,7 +78,7 @@ public:
 		const uint32_t *p = reinterpret_cast<const uint32_t *>(ptr);
 		assert(length % 4 == 0);
 
-		for (int i=0; i < length /4; ++i)
+		for (int i=0; i < length/4; ++i)
 			res ^= *p++;
 		return res;
 	}
@@ -100,7 +101,7 @@ public:
 	void sendwChksum(muduo::net::TcpConnection* conn,
 			  const void *ptr, int32_t length)
 	{
-		assert(length %4 == 0);
+		assert(length % 4 == 0);
 		assert(length < 65501);
 
 		muduo::net::Buffer buf;

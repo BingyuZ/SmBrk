@@ -13,7 +13,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="Inc" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -23,7 +22,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add directory="Inc" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -33,7 +31,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add directory="Inc" />
+			<Add directory="inc" />
 			<Add directory="../build/release-install/include" />
 		</Compiler>
 		<Linker>
@@ -48,12 +46,14 @@
 		<Unit filename="inc/commons.h" />
 		<Unit filename="inc/gconf.h" />
 		<Unit filename="inc/readconf.h" />
+		<Unit filename="inc/servers.h" />
 		<Unit filename="inc/zecodec.h" />
 		<Unit filename="src/SmBrkrS.cpp" />
 		<Unit filename="src/commons.cpp" />
 		<Unit filename="src/gconf.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/readconf.cpp" />
+		<Unit filename="src/servers.cpp" />
 		<Extensions>
 			<envvars />
 			<code_completion />
