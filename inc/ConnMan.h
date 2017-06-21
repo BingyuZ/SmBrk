@@ -26,7 +26,20 @@ struct Session
 //    TcpConnectionPtr tcpCon_;
 };
 
-
+union ConContext
+{
+    uint64_t    ull_;
+    struct {
+        uint32_t    sID_;   // LSB
+        uint16_t    u16_;
+        uint8_t     u8_;
+        uint8_t     stage_;     // MSB
+    };
+    struct {
+        uint32_t    seed1_;
+        uint32_t    seed2_;
+    };
+};
 
 class ConnMan : boost::noncopyable
 {
@@ -34,7 +47,6 @@ private:
     void InitSessionPool(void)
     {
         sPool_.reserve(nsPool_+2);
-        //svFree_.reserve(nsPool_+2);
 		for (int i=0; i<nsPool_; i++) {
             sPool_[i].status_ = SES_UNUSED;
             //sPool_[i].tcpCon_ = NULL;
@@ -61,7 +73,7 @@ public:
         int32_t sID = it->second;
         assert(sID >= 0 && sID < nsPool_);
         assert(sPool_[sID].status_ == SES_UNUSED);
-        return sID;
+        return sID+kOffset;
     }
 
     // New session from an agent ID.
@@ -82,12 +94,12 @@ public:
         agtMap_.insert(std::map<uint32_t, int32_t>::value_type(aID, sID));
         sPool_[sID].agentID_ = aID;
         sPool_[sID].status_ = SES_CLEAR;
-        return sID;
+        return sID+kOffset;
     }
 
     // Ends a session and returns the session ID
     void EndSession(int32_t sID) {
-        //sID -= kOffset;
+        sID -= kOffset;
         assert(sID >= 0 && sID < nsPool_);
 
         MutexLockGuard lock(mutex_);
@@ -106,7 +118,7 @@ public:
     // sessionID is between kOffset & kOffset + maxSession
     // Returns NULL is not found
     Session *GetSession(int32_t sID) {
-        //sID -= kOffset;
+        sID -= kOffset;
         if (sID < 0 || sID >= nsPool_) return NULL;
         if (sPool_[sID].status_ == SES_UNUSED)  return NULL;
 
@@ -115,7 +127,7 @@ public:
 
 
 private:
-    //const static int32_t kOffset = 0x2000;
+    const static int32_t kOffset = 0x2000;
 
     const int32_t nsPool_;
 

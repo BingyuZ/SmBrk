@@ -33,7 +33,6 @@ using namespace std;
 #include "gconf.h"
 #include "commons.h"
 
-#include "ConnMan.h"
 #include "servers.h"
 
 boost::mt19937 gRng(2323u);
@@ -65,7 +64,7 @@ void SBSMain(void)
 
 	// Start Listener
     AgtServer aServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
-                      gConf.agtCmax_);
+                      gConf.agtCmax_, "AgentServer");
     aServer.start();
 
 	// Add inspector entrance

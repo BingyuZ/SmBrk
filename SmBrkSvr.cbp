@@ -42,7 +42,6 @@
 			<Add library="pthread" />
 			<Add directory="../build/release-install/lib" />
 		</Linker>
-		<Unit filename="inc/ConnMan.h" />
 		<Unit filename="inc/commons.h" />
 		<Unit filename="inc/gconf.h" />
 		<Unit filename="inc/readconf.h" />

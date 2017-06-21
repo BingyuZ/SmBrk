@@ -21,6 +21,34 @@
 using namespace muduo;
 using namespace muduo::net;
 
+enum {
+    SC_NCON = 0,
+    SC_CHSENT,
+    SC_PASSED,
+};
+
+struct Session {
+    uint8_t     stage_;
+    uint32_t    agentId_;
+    uint32_t    passwd_[4];
+};
+
+struct PacketHeader {
+    uint8_t     verHi_;
+    uint8_t     verLo_;
+    uint8_t     lenHi_; // Length = < command ... body >, without CRC
+    uint8_t     LenLo_;
+    uint8_t     cmd_;
+    uint8_t     cmdA_;
+    uint8_t     ver_;
+    uint8_t     rev_;
+
+    uint32_t    saltHi_;
+    uint32_t    saltLo_;
+
+    char        body_[0];
+};
+
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,
         						const muduo::string& message,
 								muduo::Timestamp) > MBlockMessageCallback;
@@ -39,9 +67,8 @@ public:
 					  muduo::net::Buffer* buf,
 					  muduo::Timestamp receiveTime)
 	{
-		while (buf->readableBytes() >= kHeaderLen) // kHeaderLen == 4
+		while (buf->readableBytes() >= kMinLength + 4) // kMinLength == 16  exclude CRC
 		{
-			// FIXME: use Buffer::peekInt32()
 			const char* pC1 = (const char *) buf->peek();
 
 			if (*pC1 != 'Z' && *(pC1+1) != 'E') {
@@ -53,18 +80,19 @@ public:
 			pC1 += 2;
 			int32_t len = *pC1 * 256 + *(pC1+1);
 
-			if (len < kMinLength)
+			if (len < kMinLength - 4)   // Length = 12+
 			{
 				LOG_ERROR << "Invalid packet length " << len;
 				conn->shutdown();  // FIXME: disable reading
 				break;
 			}
-			else if (buf->readableBytes() >= len + kHeaderLen)
+			else if (buf->readableBytes() >= len + 8)   // Header + CRC
 			{
-				buf->retrieve(kHeaderLen);
-				muduo::string message(buf->peek(), len-4);
+			    // TODO: Check CRC here
+				buf->retrieve(kHeaderLen);  // 4
+				muduo::string message(buf->peek(), len);
 				messageCallback_(conn, message, receiveTime);
-				buf->retrieve(len);
+				buf->retrieve(len + 4);
 			}
 			else break;	// Haven't got enough bytes
 		}
@@ -98,7 +126,7 @@ public:
 	// SBY: Checksum added
 	// Length must be 4x
 	// Chksum untested
-	void sendwChksum(muduo::net::TcpConnection* conn,
+	void sendwChksum(muduo::net::TcpConnectionPtr& conn,
 			  const void *ptr, int32_t length)
 	{
 		assert(length % 4 == 0);
@@ -109,8 +137,9 @@ public:
 		int32_t head = kSpec + length + 4;
 		int32_t be32 = muduo::net::sockets::hostToNetwork32(head);
 		buf.prepend(&be32, sizeof be32);
-//		uint32_t chksum = Chksum(head, ptr, length+4);
-//		be32 = muduo::net::sockets::hostToNetwork32(chksum);
+
+		uint32_t chksum = Chksum(head, ptr, length+4);
+		be32 = muduo::net::sockets::hostToNetwork32(chksum);
 		buf.appendInt32(ChkSum(head, static_cast<const char *>(ptr), length+4));
 		conn->send(&buf);
 	}
