@@ -21,13 +21,13 @@ public:
 	AgtServer(EventLoop* loop, const InetAddress& listenAddr,
               int maxConn, const muduo::string& svrName)
             : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
-			  server_(loop, listenAddr, svrName)
-//			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
+			  server_(loop, listenAddr, svrName),
+			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
 	{
 		server_.setConnectionCallback(boost::bind(&AgtServer::onConnection, this, _1));
 		server_.setMessageCallback(
-//					boost::bind(&MLengthHeaderCodec::onMessagewC, this, _1, _2, _3));
-                    boost::bind(&AgtServer::onMessage, this, _1, _2, _3));
+                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
+//                  boost::bind(&AgtServer::onMessage, this, _1, _2, _3));
 
 	}
 
@@ -39,6 +39,11 @@ public:
     virtual ~AgtServer() {}
 
 protected:
+    void DevStatus(const TcpConnectionPtr&, const Session &, const muduo::string&);
+    void SaveHistory(const TcpConnectionPtr&, const Session &, const muduo::string&);
+    void NewData(const TcpConnectionPtr&, const Session &, const muduo::string&);
+    void DevLost(const TcpConnectionPtr&, const Session &, const muduo::string&);
+
 
     void onConnection(const TcpConnectionPtr& conn);
 
@@ -59,7 +64,7 @@ protected:
 
     TcpServer 		server_;
 
-//	MLengthHeaderCodec codec_;
+	MLengthHeaderCodec codec_;
 
 	MutexLock 		mutex_;
 

@@ -15,6 +15,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/random.hpp>
+#include <boost/random/seed_seq.hpp>
 
 #include <string.h>
 #include <unistd.h>
@@ -26,7 +27,6 @@ using namespace muduo;
 using namespace muduo::net;
 
 using namespace std;
-//using namespace zeinmod;
 
 #include <ctime>
 
@@ -35,7 +35,7 @@ using namespace std;
 
 #include "servers.h"
 
-boost::mt19937 gRng(2323u);
+
 
 
 namespace muduo
@@ -48,15 +48,15 @@ int stringPrintf(string* out, const char* fmt, ...) __attribute__ ((format (prin
 
 using muduo::inspect::stringPrintf;
 
-
-
-
-
+boost::mt19937 gRng;
 
 
 void SBSMain(void)
 {
-	gRng.seed(static_cast<unsigned int>(std::time(0)));
+    unsigned tt[2] = { static_cast<unsigned int>(std::time(0)), 2323ul };
+
+    boost::random::seed_seq ss(tt);
+	gRng.seed(ss);
 
 	EventLoop loop;
 	EventLoopThread t;

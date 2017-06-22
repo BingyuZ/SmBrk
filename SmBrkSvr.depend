@@ -146,11 +146,12 @@
 	<algorithm>
 	"readconf.h"
 
-1498040140 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
+1498101736 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
 	"servers.h"
 	<boost/random.hpp>
+	<memory.h>
 
-1498039598 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
+1498117417 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
 	<muduo/base/Logging.h>
 	<muduo/net/Buffer.h>
 	<muduo/net/Endian.h>
@@ -196,7 +197,7 @@
 	<muduo/base/StringPiece.h>
 	<netinet/in.h>
 
-1498018546 source:/home/bingyu/Work/SmBrkSvr/src/SmBrkrS.cpp
+1498098306 source:/home/bingyu/Work/SmBrkSvr/src/SmBrkrS.cpp
 	<muduo/base/Mutex.h>
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
@@ -205,13 +206,13 @@
 	<muduo/net/inspect/Inspector.h>
 	<boost/bind.hpp>
 	<boost/random.hpp>
+	<boost/random/seed_seq.hpp>
 	<string.h>
 	<unistd.h>
 	<iostream>
 	<ctime>
 	"gconf.h"
 	"commons.h"
-	"ConnMan.h"
 	"servers.h"
 
 1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Mutex.h
@@ -297,7 +298,7 @@
 	<queue>
 	<stack>
 
-1498040079 /home/bingyu/Work/SmBrkSvr/inc/servers.h
+1498124222 /home/bingyu/Work/SmBrkSvr/inc/servers.h
 	<stdint.h>
 	<muduo/base/Mutex.h>
 	<muduo/net/EventLoop.h>

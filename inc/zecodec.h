@@ -21,7 +21,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
-enum {
+enum ConnStage {
     SC_NCON = 0,
     SC_CHSENT,
     SC_PASSED,
@@ -29,25 +29,49 @@ enum {
 
 struct Session {
     uint8_t     stage_;
+    uint8_t     rev_;
     uint32_t    agentId_;
     uint32_t    passwd_[4];
 };
 
+enum CommandAgt {
+    CA_UNKNOWN  = 0,
+
+    CAS_WELCOME = 1,
+    CAA_LOGANS  = 2,
+    CAS_LOGRES  = 3,    // Not necessary?
+
+    CAA_KALIVE  = 8,
+    CAS_KALIVE  = 9,
+
+    CAA_DEVSTA  = 0x10,
+    CAA_DEVLOST = 0x12,
+    CAA_DEVHIS  = 0x14,
+
+    CAS_DEVANS  = 0x11,
+
+    CAA_DATA    = 0x20,
+    CAS_DACK    = 0x21,
+
+
+};
+
 struct PacketHeader {
-    uint8_t     verHi_;
-    uint8_t     verLo_;
-    uint8_t     lenHi_; // Length = < command ... body >, without CRC
-    uint8_t     LenLo_;
+//    uint8_t     verHi_;
+//    uint8_t     verLo_;
+//    uint8_t     lenHi_; // Length = < command ... body >, without CRC
+//    uint8_t     LenLo_;
     uint8_t     cmd_;
     uint8_t     cmdA_;
     uint8_t     ver_;
-    uint8_t     rev_;
+    uint8_t     rev_;   // Used as encryption
 
     uint32_t    saltHi_;
     uint32_t    saltLo_;
 
     char        body_[0];
 };
+void FillPacketHeader(PacketHeader *pH, enum CommandAgt cmd, bool genSalt = true);
 
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,
         						const muduo::string& message,
@@ -78,7 +102,7 @@ public:
 			}
 
 			pC1 += 2;
-			int32_t len = *pC1 * 256 + *(pC1+1);
+			uint32_t len = *pC1 * 256 + *(pC1+1);
 
 			if (len < kMinLength - 4)   // Length = 12+
 			{
@@ -100,7 +124,7 @@ public:
 
 	// use simple XOR in this version
 	// ptr should be 4x, otherwise SIGBUS
-	uint32_t ChkSum(int head, const char *ptr, int32_t length)
+	uint32_t Chksum(int head, const char *ptr, int32_t length)
 	{
 		uint32_t res = head;
 		const uint32_t *p = reinterpret_cast<const uint32_t *>(ptr);
@@ -111,8 +135,7 @@ public:
 		return res;
 	}
 
-	// FIXME: TcpConnectionPtr
-	void send(muduo::net::TcpConnection* conn,
+	void send(const muduo::net::TcpConnectionPtr& conn,
 			  const muduo::StringPiece& message)
 	{
 		muduo::net::Buffer buf;
@@ -126,7 +149,7 @@ public:
 	// SBY: Checksum added
 	// Length must be 4x
 	// Chksum untested
-	void sendwChksum(muduo::net::TcpConnectionPtr& conn,
+	void sendwChksum(const muduo::net::TcpConnectionPtr& conn,
 			  const void *ptr, int32_t length)
 	{
 		assert(length % 4 == 0);
@@ -134,13 +157,14 @@ public:
 
 		muduo::net::Buffer buf;
 		buf.append(ptr, length);
-		int32_t head = kSpec + length + 4;
-		int32_t be32 = muduo::net::sockets::hostToNetwork32(head);
-		buf.prepend(&be32, sizeof be32);
 
-		uint32_t chksum = Chksum(head, ptr, length+4);
-		be32 = muduo::net::sockets::hostToNetwork32(chksum);
-		buf.appendInt32(ChkSum(head, static_cast<const char *>(ptr), length+4));
+		int32_t head = kSpec + length;
+		int32_t be32 = muduo::net::sockets::hostToNetwork32(head);
+		buf.prependInt32(head);
+
+		//head = Chksum(be32, static_cast<const char *>(ptr), length);
+
+		buf.appendInt32(Chksum(be32, static_cast<const char *>(ptr), length));
 		conn->send(&buf);
 	}
 
@@ -150,6 +174,5 @@ public:
 		const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 		const static int32_t kMinLength = 0x10;
 };
-
 
 #endif  // ZECODEC_H
