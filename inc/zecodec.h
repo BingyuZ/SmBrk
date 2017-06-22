@@ -53,7 +53,8 @@ enum CommandAgt {
     CAA_DATA    = 0x20,
     CAS_DACK    = 0x21,
 
-
+    CAS_COMMAND = 0x30,
+    CAA_CMDRESP = 0x31,
 };
 
 struct PacketHeader {
