@@ -21,17 +21,17 @@
 using namespace muduo;
 using namespace muduo::net;
 
+#define MAXDEV  16
+#define ZE_VER  1
+
+#define AU_ENCRY    ENCRY_NONE
+
+#define ENCRY_NONE  0
+
 enum ConnStage {
     SC_NCON = 0,
     SC_CHSENT,
     SC_PASSED,
-};
-
-struct Session {
-    uint8_t     stage_;
-    uint8_t     rev_;
-    uint32_t    agentId_;
-    uint32_t    passwd_[4];
 };
 
 enum CommandAgt {
@@ -39,7 +39,7 @@ enum CommandAgt {
 
     CAS_WELCOME = 1,
     CAA_LOGANS  = 2,
-    CAS_LOGRES  = 3,    // Not necessary?
+    CAS_LOGRES  = 3,
 
     CAA_KALIVE  = 8,
     CAS_KALIVE  = 9,
@@ -61,7 +61,8 @@ struct PacketHeader {
 //    uint8_t     verHi_;
 //    uint8_t     verLo_;
 //    uint8_t     lenHi_; // Length = < command ... body >, without CRC
-//    uint8_t     LenLo_;
+//    uint8_t     lenLo_;
+
     uint8_t     cmd_;
     uint8_t     cmdA_;
     uint8_t     ver_;
@@ -70,10 +71,128 @@ struct PacketHeader {
     uint32_t    saltHi_;
     uint32_t    saltLo_;
 
-    char        body_[0];
+    uint32_t    body_[0];
+    //char        body_[0];
 };
-void FillPacketHeader(PacketHeader *pH, enum CommandAgt cmd, bool genSalt = true);
 
+extern uint32_t GetMyRand(bool t=true);
+
+class Session {
+public:
+    explicit Session(const TcpConnectionPtr& conn)
+        : stage_(SC_CHSENT), conn_(conn)
+    {
+        rev_ = AU_ENCRY;
+        for (int i=0; i<MAXDEV; i++)
+            devId_[i] = 0xFFFFFFFFUL;
+        agentId_ = 0;
+        passwd_[0] = GetMyRand();
+        passwd_[1] = GetMyRand();
+    }
+
+    ~Session(){}
+
+    void GeneratePass(void)
+    {
+        stage_ = SC_PASSED;
+        for (int i=0; i<4; i++)
+            passwd_[i] = GetMyRand();
+    }
+
+	uint32_t Chksum(int head, const char *ptr, int32_t length)
+	{
+		uint32_t res = head;
+		const uint32_t *p = reinterpret_cast<const uint32_t *>(ptr);
+		assert(length % 4 == 0);
+
+		for (int i=0; i < length/4; ++i)
+			res ^= *p++;
+		return res;
+	}
+
+	bool CheckPass(muduo::string s)
+	{
+	    const PacketHeader *pPack = reinterpret_cast<const PacketHeader *> (s.data());
+
+	    // TODO: Check the password here
+
+	    const uint32_t ul = *reinterpret_cast<const uint32_t *>(pPack->body_);
+	    agentId_ = muduo::net::sockets::networkToHost32(ul);
+	    stage_ = SC_PASSED;
+
+        return true;
+	}
+
+	void sendWelcome(void)
+	{
+	    PacketHeader header;
+
+	    header.cmd_ = CAS_WELCOME;
+	    header.cmdA_ = 0;
+	    header.ver_ = ZE_VER;
+	    header.rev_ = rev_;
+
+	    header.saltHi_ = passwd_[0];
+	    header.saltLo_ = passwd_[1];
+
+		uint32_t first = kSpec + 12;
+
+		muduo::net::Buffer buf;
+		buf.append(&header, 12);
+
+		uint32_t be32 = muduo::net::sockets::hostToNetwork32(first);
+		buf.prependInt32(first);
+
+		buf.appendInt32(Chksum(be32, reinterpret_cast<const char *>(&header), 12));
+		conn_->send(&buf);
+	}
+
+	void sendPacket(CommandAgt type, const void *ptr, uint32_t length)
+	{
+		assert(length % 8 == 0);
+		assert(length < 65501);
+
+		PacketHeader header;
+		header.cmd_ = type;
+		header.cmdA_ = 0;
+		header.ver_ = ZE_VER;
+	    header.rev_ = rev_;
+
+	    header.saltHi_ = GetMyRand(false);
+	    header.saltLo_ = GetMyRand(false);
+
+		uint32_t first = kSpec + 12 + length;
+
+		muduo::net::Buffer buf;
+		buf.append(&header, 12);
+		buf.prependInt32(first);
+		// encrypt here
+
+		for (uint32_t i=0; i<length; i+=8)
+            buf.append((const char *)ptr + i, 8);
+
+		buf.prependInt32(first);
+		uint32_t crc = 0;   // TODO: Real CRC
+
+		buf.appendInt32(crc);
+
+		LOG_DEBUG << "OK?";
+
+		conn_->send(&buf);
+	}
+
+    uint8_t     stage_;
+    uint8_t     rev_;
+    uint32_t    passwd_[4];
+    uint32_t    agentId_;
+    uint32_t    devId_[MAXDEV];
+
+ private:
+    const TcpConnectionPtr& conn_;
+    const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
+};
+
+#if 0
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,
         						const muduo::string& message,
 								muduo::Timestamp) > MBlockMessageCallback;
@@ -175,5 +294,6 @@ public:
 		const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 		const static int32_t kMinLength = 0x10;
 };
+#endif
 
 #endif  // ZECODEC_H

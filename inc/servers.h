@@ -21,13 +21,13 @@ public:
 	AgtServer(EventLoop* loop, const InetAddress& listenAddr,
               int maxConn, const muduo::string& svrName)
             : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
-			  server_(loop, listenAddr, svrName),
-			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
+			  server_(loop, listenAddr, svrName)
+//			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
 	{
 		server_.setConnectionCallback(boost::bind(&AgtServer::onConnection, this, _1));
 		server_.setMessageCallback(
-                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
-//                  boost::bind(&AgtServer::onMessage, this, _1, _2, _3));
+//                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
+                  boost::bind(&AgtServer::onMessage, this, _1, _2, _3));
 
 	}
 
@@ -39,6 +39,8 @@ public:
     virtual ~AgtServer() {}
 
 protected:
+    bool CheckCRC(const char*, uint32_t len);
+
     void DevStatus(const TcpConnectionPtr&, const Session &, const muduo::string&);
     void SaveHistory(const TcpConnectionPtr&, const Session &, const muduo::string&);
     void NewData(const TcpConnectionPtr&, const Session &, const muduo::string&);
@@ -58,18 +60,21 @@ protected:
 	typedef std::set<TcpConnectionPtr> ConnectionList;
 	ConnectionList	connections_;
 
+	typedef boost::shared_ptr<Session> SessionPtr;
+
 	EventLoop* 		loop_;
 	int				kMaxConn_;
 	int				numConnected_;
 
     TcpServer 		server_;
 
-	MLengthHeaderCodec codec_;
+//	MLengthHeaderCodec codec_;
 
 	MutexLock 		mutex_;
 
 private:
-
+    const static int32_t kMinLength = 0x10;
+	const static size_t kHeaderLen = sizeof(int32_t);
 };
 
 
