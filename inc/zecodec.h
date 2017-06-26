@@ -68,11 +68,16 @@ struct PacketHeader {
     uint8_t     ver_;
     uint8_t     rev_;   // Used as encryption
 
-    uint32_t    saltHi_;
-    uint32_t    saltLo_;
+    union {
+        struct {
+            uint32_t    saltHi_;
+            uint32_t    saltLo_;
+        };
+        uint64_t    salt_;
+    };
 
-    uint32_t    body_[0];
-    //char        body_[0];
+//    uint32_t    body_[0];
+    char        body_[0];
 };
 
 extern uint32_t GetMyRand(bool t=true);
@@ -94,7 +99,7 @@ public:
 
     void GeneratePass(void)
     {
-        stage_ = SC_PASSED;
+        //stage_ = SC_PASSED;
         for (int i=0; i<4; i++)
             passwd_[i] = GetMyRand();
     }
@@ -110,7 +115,7 @@ public:
 		return res;
 	}
 
-	bool CheckPass(muduo::string s)
+	bool CheckPass(const muduo::string& s)
 	{
 	    const PacketHeader *pPack = reinterpret_cast<const PacketHeader *> (s.data());
 
@@ -147,8 +152,10 @@ public:
 		conn_->send(&buf);
 	}
 
-	void sendPacket(CommandAgt type, const void *ptr, uint32_t length)
+	void sendPacket(CommandAgt type, const void *pBuf, uint32_t length)
 	{
+	    const char *ptr = (const char *)pBuf;
+
 		assert(length % 8 == 0);
 		assert(length < 65501);
 
@@ -166,19 +173,45 @@ public:
 		muduo::net::Buffer buf;
 		buf.append(&header, 12);
 		buf.prependInt32(first);
+
 		// encrypt here
+		for (uint32_t i=0; i<length; i+=8) {
+            buf.append(ptr, 8);
+            ptr += 8;
+		}
 
-		for (uint32_t i=0; i<length; i+=8)
-            buf.append((const char *)ptr + i, 8);
-
-		buf.prependInt32(first);
 		uint32_t crc = 0;   // TODO: Real CRC
-
 		buf.appendInt32(crc);
 
-		LOG_DEBUG << "OK?";
-
 		conn_->send(&buf);
+	}
+
+	uint64_t getEnc(uint64_t salt)
+	{
+	    return 0;
+	}
+
+	bool decrypt(const char *src, muduo::string *msg, int length)
+	{
+        const struct PacketHeader *pH = (const struct PacketHeader *)src;
+        if (pH->ver_ != ZE_VER || pH->rev_ != AU_ENCRY) return false;
+
+	    uint64_t    salt = pH->salt_;
+
+	    msg->reserve(length);
+	    src += 12;
+	    for (int i=0; i<((length-5)&0xfff8); i+=8) {
+            salt = getEnc(salt);
+            msg->append(src, 8);
+            src += 8;
+	    }
+	    LOG_DEBUG << msg->length() << " bytes decrypted";
+
+	    return true;
+    }
+
+    void ResetConn(void){
+	    conn_.reset();
 	}
 
     uint8_t     stage_;
@@ -188,7 +221,7 @@ public:
     uint32_t    devId_[MAXDEV];
 
  private:
-    const TcpConnectionPtr& conn_;
+    TcpConnectionPtr conn_;     // Must do! A assignment
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 };
 

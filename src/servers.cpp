@@ -64,32 +64,29 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 			LOG_WARN << "Exceeds maximum connection";
 			return;
 		}
-
         conn->setTcpNoDelay(true);
 
-        Session sess(conn);
-        //SessionPtr sess(new Session(conn));
-
-        LOG_DEBUG << "Conn " << sess.passwd_[0] << " , " << sess.passwd_[1];
-        sess.sendWelcome();
+        //Session sess(conn);
+        SessionPtr pSess(new Session(conn));
+        pSess->sendWelcome();
 
         MutexLockGuard lock(mutex_);
 
         ++numConnected_;
-        conn->setContext(sess);
+        conn->setContext(pSess);
         connections_.insert(conn);
 	}
 	else{
-        // Session &sess = boost::any_cast<Session &>(conn->getContext());
-        // Make session invalid?
-        MutexLockGuard lock(mutex_);
 
+        const SessionPtr& pSess = boost::any_cast<const SessionPtr &>(conn->getContext());
+        pSess->ResetConn();
+
+        MutexLockGuard lock(mutex_);
         conn->setContext(SessionPtr());
 
 		--numConnected_;
 		connections_.erase(conn);
 	}
-
 }
 
 //  assert(!conn->getContext().empty());
@@ -121,8 +118,6 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
         pC1 += 2;
 		uint32_t len = *pC1 * 256 + *(pC1+1);
 
-		//LOG_DEBUG << "Packet received, len=" << len << "  Readable:" << buf->readableBytes();
-
 		if (len < kMinLength - 4)   // Length = 12+
 		{
 			LOG_WARN << "Invalid packet length " << len;
@@ -131,6 +126,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		}
 		else if (buf->readableBytes() >= len + 8)   // Header + CRC
 		{
+		    uint8_t cmd;
 		    if (!CheckCRC(pC1-2, len)) {
                 LOG_WARN << "CRC Error";
                 conn->shutdown();  // FIXME: disable reading
@@ -138,18 +134,18 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		    }
 
 		    pC1 += 2;
-		    LOG_DEBUG << "Packet received, len=" << len << " Type: " << 0L+*pC1;
-		    if (*pC1 == CAA_LOGANS) {
-                assert(!conn->getContext().empty());
+            buf->retrieve(kHeaderLen);  // 4
 
-                Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
-                //SessionPtr& pSess = boost::any_cast<SessionPtr& >(conn->getMutableContext());
+		    LOG_DEBUG << "Packet received, len=" << len << ", Type: " << 0L+*pC1;
 
-                //const SessionPtr& pSess = boost::any_cast<const SessionPtr& >(conn->getContext());
+            assert(!conn->getContext().empty());
+            const SessionPtr& pSess = boost::any_cast<const SessionPtr &>(conn->getContext());
+            //Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
+            //SessionPtr& pSess = boost::any_cast<SessionPtr& >(conn->getMutableContext());
 
-            LOG_DEBUG << "MSGConn " << pSess->passwd_[0] << " , " << pSess->passwd_[1];
+            cmd = *pC1;
 
-                buf->retrieve(kHeaderLen);  // 4
+		    if (cmd == CAA_LOGANS) {   // Decryption not needed for LOGANS.
                 muduo::string message(buf->peek(), len);
 
                 if (len != 16 || pSess->stage_ != SC_CHSENT || !pSess->CheckPass(message)) {
@@ -170,21 +166,43 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 
 		    }   // CAA_LOGANS
 		    else {
-                // DeCrypt it
+                muduo::string message;
+                if (pSess->stage_ != SC_PASSED || !pSess->decrypt(pC1, &message, len)) {
+                    LOG_WARN << "Stage / decryption error";
+                    conn->shutdown();
+                    break;
+                }
+                buf->retrieve(len + 4);
 
+                switch (cmd){
+                case CAA_KALIVE:
+                    pSess->sendPacket(CAS_KALIVE, NULL, 0);
+                    break;
+                case CAA_DEVSTA:
+                    DevStatus(conn, pSess, message);
+                    break;
+                case CAA_DEVHIS:
+                    SaveHistory(conn, pSess, message);
+                    break;
+                case CAA_DATA:
+                    NewData(conn, pSess, message);
+                    break;
+                case CAA_DEVLOST:
+                    DevLost(conn, pSess, message);
+                    break;
+                default:
+                    LOG_WARN << "Unknown command type: " << cmd;
+                    //conn->shutdown();
+                    break;
+                }
 		    }
-
-		    // TODO: Check CRC here
-			//buf->retrieve(kHeaderLen);  // 4
-			//muduo::string message(buf->peek(), len);
-			//buf->retrieve(len + 4);
 		}
 		else break;	// Haven't got enough bytes
     }
 }
 
 void AgtServer::DevStatus(const TcpConnectionPtr& conn,
-                          const Session & sess,
+                          const SessionPtr& pSess,
                           const muduo::string& message)
 {
 
@@ -192,7 +210,7 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
 }
 
 void AgtServer::SaveHistory(const TcpConnectionPtr& conn,
-                          const Session & sess,
+                          const SessionPtr& pSess,
                           const muduo::string& message)
 {
 
@@ -200,7 +218,7 @@ void AgtServer::SaveHistory(const TcpConnectionPtr& conn,
 }
 
 void AgtServer::NewData(const TcpConnectionPtr& conn,
-                          const Session & sess,
+                          const SessionPtr& pSess,
                           const muduo::string& message)
 {
 
@@ -208,7 +226,7 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
 }
 
 void AgtServer::DevLost(const TcpConnectionPtr& conn,
-                          const Session & sess,
+                          const SessionPtr& pSess,
                           const muduo::string& message)
 {
 

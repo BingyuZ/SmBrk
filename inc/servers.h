@@ -38,13 +38,15 @@ public:
 
     virtual ~AgtServer() {}
 
+    typedef boost::shared_ptr<Session> SessionPtr;
+
 protected:
     bool CheckCRC(const char*, uint32_t len);
 
-    void DevStatus(const TcpConnectionPtr&, const Session &, const muduo::string&);
-    void SaveHistory(const TcpConnectionPtr&, const Session &, const muduo::string&);
-    void NewData(const TcpConnectionPtr&, const Session &, const muduo::string&);
-    void DevLost(const TcpConnectionPtr&, const Session &, const muduo::string&);
+    void DevStatus(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+    void SaveHistory(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+    void NewData(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+    void DevLost(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
 
 
     void onConnection(const TcpConnectionPtr& conn);
@@ -60,8 +62,6 @@ protected:
 	typedef std::set<TcpConnectionPtr> ConnectionList;
 	ConnectionList	connections_;
 
-	typedef boost::shared_ptr<Session> SessionPtr;
-
 	EventLoop* 		loop_;
 	int				kMaxConn_;
 	int				numConnected_;
@@ -69,7 +69,6 @@ protected:
     TcpServer 		server_;
 
 //	MLengthHeaderCodec codec_;
-
 	MutexLock 		mutex_;
 
 private:

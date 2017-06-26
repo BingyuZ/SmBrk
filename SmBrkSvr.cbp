@@ -11,6 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-c smbrk.conf" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -44,6 +45,7 @@
 		</Linker>
 		<Unit filename="inc/commons.h" />
 		<Unit filename="inc/gconf.h" />
+		<Unit filename="inc/mapp.h" />
 		<Unit filename="inc/readconf.h" />
 		<Unit filename="inc/servers.h" />
 		<Unit filename="inc/zecodec.h" />
