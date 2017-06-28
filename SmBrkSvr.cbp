@@ -40,20 +40,25 @@
 			<Add library="muduo_http" />
 			<Add library="muduo_net" />
 			<Add library="muduo_base" />
+			<Add library="hiredis" />
 			<Add library="pthread" />
 			<Add directory="../build/release-install/lib" />
 		</Linker>
+		<Unit filename="inc/Hiredis.h" />
 		<Unit filename="inc/commons.h" />
 		<Unit filename="inc/gconf.h" />
 		<Unit filename="inc/mapp.h" />
 		<Unit filename="inc/readconf.h" />
+		<Unit filename="inc/redisWrapper.h" />
 		<Unit filename="inc/servers.h" />
 		<Unit filename="inc/zecodec.h" />
+		<Unit filename="src/Hiredis.cc" />
 		<Unit filename="src/SmBrkrS.cpp" />
 		<Unit filename="src/commons.cpp" />
 		<Unit filename="src/gconf.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/readconf.cpp" />
+		<Unit filename="src/redisWrapper.cpp" />
 		<Unit filename="src/servers.cpp" />
 		<Extensions>
 			<envvars />

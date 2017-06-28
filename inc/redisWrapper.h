@@ -21,6 +21,10 @@ class redisStore : public boost::enable_shared_from_this<Hiredis>,
   void connect() { hRedis.connect(); }
   void disconnect() { hRedis.disconnect(); }  // FIXME: implement this with redisAsyncDisconnect
 
+  int setPair(const std::string &key, const std::string &value);
+  int genSet(const std::string &cmd);
+  int zAdd(const std::string &key, int weight, const std::string &value);
+
  private:
   Hiredis hRedis;
   muduo::net::EventLoop* loop_;
