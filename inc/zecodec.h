@@ -217,11 +217,11 @@ public:
     uint8_t     stage_;
     uint8_t     rev_;
     uint32_t    passwd_[4];
-    uint32_t    agentId_;
-    uint32_t    devId_[MAXDEV];
+    uint64_t    agentId_;
+    uint64_t    devId_[MAXDEV]; // 12 BCD
 
  private:
-    TcpConnectionPtr conn_;     // Must do! A assignment
+    TcpConnectionPtr conn_;     // Must do! An assignment
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 };
 

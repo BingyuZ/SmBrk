@@ -33,6 +33,7 @@ using namespace std;
 #include "gconf.h"
 #include "commons.h"
 
+#include "redisWrapper.h"
 #include "servers.h"
 
 
@@ -59,13 +60,19 @@ void SBSMain(void)
 	gRng.seed(ss);
 
 	EventLoop loop;
-	EventLoopThread t;
-	Inspector ins(t.startLoop(), InetAddress(gConf.monPort_), "Inspector");
+	EventLoopThread tIns, tQuery;
+	Inspector ins(tIns.startLoop(), InetAddress(gConf.monPort_), "Inspector");
 
-	// Start Listener
-    AgtServer aServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
-                      gConf.agtCmax_, "AgentServer");
-    aServer.start();
+	hiredis::redisQuery qRedis(tQuery.startLoop(), InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
+	qRedis.connect();
+
+	hiredis::redisStore sRedis(&loop, InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
+    sRedis.connect();
+
+	// Start Agent Listener
+    AgtServer agtServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
+                      gConf.agtCmax_, "AgentServer", &sRedis);
+    agtServer.start();
 
 	// Add inspector entrance
 

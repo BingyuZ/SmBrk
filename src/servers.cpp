@@ -3,7 +3,7 @@
 #include <boost/random.hpp>
 
 #include <memory.h>
-
+#include <sys/time.h>
 
 
 #if 0
@@ -159,10 +159,20 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 // If there is a previous instance, kick it out!
 
                 pSess->GeneratePass();
-                uint32_t data[4];
+                uint32_t data[6];
                 for (int i=0; i<4; i++)
                     data[i] = muduo::net::sockets::networkToHost32(pSess->passwd_[i]);
-                pSess->sendPacket(CAS_LOGRES, data, 16);
+
+                struct timeval tv;
+                gettimeofday(&tv, NULL);
+                #if defined __x86_64__
+                    data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec >> 32);
+                    data[6] = muduo::net::sockets::networkToHost32(tv.tv_sec & 0xffffffffUL);
+                #else
+                    data[5] = 0;
+                    data[6] = muduo::net::sockets::networkToHost32(tv.tv_sec);
+                #endif
+                pSess->sendPacket(CAS_LOGRES, data, 24);
 
 		    }   // CAA_LOGANS
 		    else {

@@ -14,14 +14,21 @@
 
 #include <set>
 
+namespace hiredis
+{
+class redisStore;
+class redisQuery;
+}
 
 class AgtServer
 {
 public:
 	AgtServer(EventLoop* loop, const InetAddress& listenAddr,
-              int maxConn, const muduo::string& svrName)
+              int maxConn, const muduo::string& svrName,
+              hiredis::redisStore *pSRedis)
             : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
-			  server_(loop, listenAddr, svrName)
+			  server_(loop, listenAddr, svrName),
+			  pSRedis_(pSRedis)
 //			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
 	{
 		server_.setConnectionCallback(boost::bind(&AgtServer::onConnection, this, _1));
@@ -67,6 +74,7 @@ protected:
 	int				numConnected_;
 
     TcpServer 		server_;
+    hiredis::redisStore *pSRedis_;
 
 //	MLengthHeaderCodec codec_;
 	MutexLock 		mutex_;
