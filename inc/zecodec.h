@@ -205,7 +205,7 @@ public:
             msg->append(src, 8);
             src += 8;
 	    }
-	    LOG_DEBUG << msg->length() << " bytes decrypted";
+	    LOG_DEBUG << msg->length()-12 << " bytes decrypted";
 
 	    return true;
     }

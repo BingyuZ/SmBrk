@@ -6,32 +6,36 @@
 namespace hiredis
 {
 
-class redisStore : public boost::enable_shared_from_this<Hiredis>,
+class redisStore : public boost::enable_shared_from_this<redisStore>,
                 boost::noncopyable
 {
  public:
   redisStore(muduo::net::EventLoop* loop, const muduo::net::InetAddress& serverAddr)
-    : hRedis(loop, serverAddr), loop_(loop) { }
-
+    : hRedis_(loop, serverAddr), loop_(loop) { }
   ~redisStore() { }
 
-  bool connected() const { return hRedis.connected(); }
-  const char* errstr() const { return hRedis.errstr();  }
 
-  void connect() { hRedis.connect(); }
-  void disconnect() { hRedis.disconnect(); }  // FIXME: implement this with redisAsyncDisconnect
+  const char* errstr() const { return hRedis_.errstr();  }
 
-  int setPair(const std::string &key, const std::string &value);
-  int genSet(const std::string &cmd);
-  int zAdd(const std::string &key, int weight, const std::string &value);
+  void connect(void);
+
+  void store(const muduo::StringPiece &cmd);
+
+  int aSet(const muduo::StringPiece &cmd);
+  //void setPair(const muduo::StringPiece &key, const muduo::StringPiece &value);
+  //void genSet(const muduo::StringPiece &cmd);
+  //void zAdd(const muduo::StringPiece &key, int weight, const muduo::StringPiece &value);
 
  private:
-  Hiredis hRedis;
+  bool connected() const { return hRedis_.connected(); }
+  void disconnect() { hRedis_.disconnect(); }
+
+  Hiredis hRedis_;
   muduo::net::EventLoop* loop_;
 };
 
 
-class redisQuery : public boost::enable_shared_from_this<Hiredis>,
+class redisQuery : public boost::enable_shared_from_this<redisQuery>,
                 boost::noncopyable
 {
  public:

@@ -56,27 +56,69 @@ void setCallback(Hiredis* c, redisReply* reply)
     LOG_DEBUG << "SetCmd " << redisReplyToString(reply);
 }
 
-int redisStore::setPair(const std::string &key, const std::string &value)
+void redisStore::connect(void)
 {
-    LOG_DEBUG << "Set " << key << " " << value;
-    return hRedis.command(boost::bind(setCallback, _1, _2), "set %s \"%s\"",
-                            key.c_str(), value.c_str());
+    loop_->runInLoop(boost::bind(&Hiredis::connect, &hRedis_));
+}
+
+void redisStore::store(const muduo::StringPiece &cmd)
+{
+    hRedis_.command(boost::bind(setCallback, _1, _2), cmd.data());
+}
+
+// Firewall :)
+int redisStore::aSet(const muduo::StringPiece &cmd)
+{
+  if (!connected()) {
+    LOG_WARN << "Not connected";
+    return REDIS_ERR;
+  }
+
+  loop_->runInLoop(boost::bind(&redisStore::store, this, cmd));
+  return 0;
+}
+
+
+#if 0
+void redisStore::setPair(const muduo::StringPiece &key, const muduo::StringPiece &value)
+{
+    hRedis_.command(setCallback, "set %s \"%s\"",
+                    key.data(), value.data());
+
+    loop_->runInLoop(boost::bind(&Hiredis::connect, &hRedis_));
+// TODO: Above test!!!
+
+    loop_->runInLoop(boost::bind(&Hiredis::command, &hRedis_,
+                                 boost::bind(setCallback, _1, _2),
+                                 "set %s \"%s\"", key.data(), value.data()));
+
+//    LOG_DEBUG << "Set " << key << " " << value;
+//    return hRedis.command(boost::bind(setCallback, _1, _2), "set %s \"%s\"",
+//                            key.c_str(), value.c_str());
 }
 
 // mainly for HMSET
-int redisStore::genSet(const std::string &cmd)
+void redisStore::genSet(const muduo::StringPiece &cmd)
 {
-    LOG_DEBUG << "GeneralCommand " << cmd;
-    return hRedis.command(boost::bind(setCallback, _1, _2), cmd);
+    loop_->runInLoop(boost::bind(&Hiredis::command, &hRedis_,
+                                 boost::bind(setCallback, _1, _2),
+                                 cmd.data()));
+
+//    LOG_DEBUG << "GeneralCommand " << cmd;
+//    return hRedis.command(boost::bind(setCallback, _1, _2), cmd);
 }
 
-int redisStore::zAdd(const std::string &key, int weight, const std::string &value)
+void redisStore::zAdd(const muduo::StringPiece &key, int weight, const muduo::StringPiece &value)
 {
-    LOG_DEBUG << "Zadd " << key << " " << weight << " " << value;
-    return hRedis.command(boost::bind(setCallback, _1, _2), "zadd %s %d \"%s\"",
-                            key.c_str(), weight, value.c_str());
-}
+    loop_->runInLoop(boost::bind(&Hiredis::command, &hRedis_,
+                                 boost::bind(setCallback, _1, _2),
+                                 "zadd %s %d \"%s\"", key.data(), weight, value.data()));
 
+//    LOG_DEBUG << "Zadd " << key << " " << weight << " " << value;
+//    return hRedis.command(boost::bind(setCallback, _1, _2), "zadd %s %d \"%s\"",
+//                            key.c_str(), weight, value.c_str());
+}
+#endif
 
 
 

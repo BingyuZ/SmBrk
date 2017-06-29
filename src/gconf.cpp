@@ -13,6 +13,7 @@
 #include <stdio.h>
 
 #include <sys/types.h>
+#include <hiredis/hiredis.h>
 
 #include <string>
 #include <iostream>
@@ -25,6 +26,22 @@ GConf gConf;
 
 bool testEnvirn(void)
 {
+    //return true;
+    redisContext *c;
+    struct timeval timeout = { 1, 500000 }; // 1.5 seconds
+    c = redisConnectWithTimeout(gConf.rds1Addr_.c_str(), gConf.rds1Port_, timeout);
+
+    if (c == NULL || c->err) {
+        if (c) {
+            cout << "Connection error: " << c->errstr << endl;
+            redisFree(c);
+        } else {
+            cout << "Connection error: can't allocate redis context" << endl;
+        }
+        return false;
+    }
+    cout << "Redis server OK\n";
+    redisFree(c);
 	return true;
 }
 

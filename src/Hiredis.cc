@@ -20,6 +20,7 @@ Hiredis::Hiredis(EventLoop* loop, const InetAddress& serverAddr)
     serverAddr_(serverAddr),
     context_(NULL)
 {
+
 }
 
 Hiredis::~Hiredis()
@@ -139,8 +140,6 @@ void Hiredis::connectCallback(int status)
     LOG_ERROR << context_->errstr << " failed to connect to " << serverAddr_.toIpPort();
     // SBY
     loop_->runAfter(5.0, boost::bind(&Hiredis::connect, this));
-   // loop_->runAfter(5.0, boost::bind(
-   //   redisAsyncConnect, serverAddr_.toIp().c_str(), serverAddr_.toPort()));
   }
   else
   {

@@ -66,23 +66,25 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 		}
         conn->setTcpNoDelay(true);
 
-        //Session sess(conn);
-        SessionPtr pSess(new Session(conn));
-        pSess->sendWelcome();
+        Session sess(conn);
+        //SessionPtr pSess(new Session(conn));
+        sess.sendWelcome();
 
         MutexLockGuard lock(mutex_);
 
         ++numConnected_;
-        conn->setContext(pSess);
+        conn->setContext(sess);
         connections_.insert(conn);
 	}
 	else{
-
-        const SessionPtr& pSess = boost::any_cast<const SessionPtr &>(conn->getContext());
-        pSess->ResetConn();
+            {
+                Session* pSess = boost::any_cast<Session>(conn->getMutableContext());
+                pSess->ResetConn();
+            }
 
         MutexLockGuard lock(mutex_);
-        conn->setContext(SessionPtr());
+        conn->setContext(NULL);
+        //conn->setContext(SessionPtr());
 
 		--numConnected_;
 		connections_.erase(conn);
@@ -139,25 +141,27 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		    LOG_DEBUG << "Packet received, len=" << len << ", Type: " << 0L+*pC1;
 
             assert(!conn->getContext().empty());
-            const SessionPtr& pSess = boost::any_cast<const SessionPtr &>(conn->getContext());
-            //Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
-            //SessionPtr& pSess = boost::any_cast<SessionPtr& >(conn->getMutableContext());
+            Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
 
             cmd = *pC1;
+            muduo::string message(buf->peek(), len);
 
 		    if (cmd == CAA_LOGANS) {   // Decryption not needed for LOGANS.
-                muduo::string message(buf->peek(), len);
+		        //SessionPtr *pSess = boost::any_cast<SessionPtr>(conn->getMutableContext());
 
                 if (len != 16 || pSess->stage_ != SC_CHSENT || !pSess->CheckPass(message)) {
                     LOG_WARN << "Stage / password Error";
                     conn->shutdown();  // FIXME: disable reading
                     break;
                 }
+                uint32_t aid = muduo::net::sockets::networkToHost32(*(uint32_t *)(pC1+12));
+
                 buf->retrieve(len + 4);
 
                 // TODO: Log & more work
                 // If there is a previous instance, kick it out!
 
+                LOG_INFO << "Agent " << aid << " Logged in";
                 pSess->GeneratePass();
                 uint32_t data[6];
                 for (int i=0; i<4; i++)
@@ -166,17 +170,16 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 struct timeval tv;
                 gettimeofday(&tv, NULL);
                 #if defined __x86_64__
-                    data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec >> 32);
-                    data[6] = muduo::net::sockets::networkToHost32(tv.tv_sec & 0xffffffffUL);
+                    data[4] = muduo::net::sockets::networkToHost32(tv.tv_sec >> 32);
+                    data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec & 0xffffffffUL);
                 #else
-                    data[5] = 0;
-                    data[6] = muduo::net::sockets::networkToHost32(tv.tv_sec);
+                    data[4] = 0;
+                    data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec);
                 #endif
                 pSess->sendPacket(CAS_LOGRES, data, 24);
 
 		    }   // CAA_LOGANS
 		    else {
-                muduo::string message;
                 if (pSess->stage_ != SC_PASSED || !pSess->decrypt(pC1, &message, len)) {
                     LOG_WARN << "Stage / decryption error";
                     conn->shutdown();
@@ -212,7 +215,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 }
 
 void AgtServer::DevStatus(const TcpConnectionPtr& conn,
-                          const SessionPtr& pSess,
+                          Session * pSess,
                           const muduo::string& message)
 {
 
@@ -220,7 +223,7 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
 }
 
 void AgtServer::SaveHistory(const TcpConnectionPtr& conn,
-                          const SessionPtr& pSess,
+                          Session * pSess,
                           const muduo::string& message)
 {
 
@@ -228,7 +231,7 @@ void AgtServer::SaveHistory(const TcpConnectionPtr& conn,
 }
 
 void AgtServer::NewData(const TcpConnectionPtr& conn,
-                          const SessionPtr& pSess,
+                          Session * pSess,
                           const muduo::string& message)
 {
 
@@ -236,7 +239,7 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
 }
 
 void AgtServer::DevLost(const TcpConnectionPtr& conn,
-                          const SessionPtr& pSess,
+                          Session * pSess,
                           const muduo::string& message)
 {
 

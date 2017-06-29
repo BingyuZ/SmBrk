@@ -117,13 +117,14 @@
 	<vector>
 	<string>
 
-1495931625 source:/home/bingyu/Work/SmBrkSvr/src/gconf.cpp
+1498722790 source:/home/bingyu/Work/SmBrkSvr/src/gconf.cpp
 	"gconf.h"
 	"readconf.h"
 	<stdlib.h>
 	<string.h>
 	<stdio.h>
 	<sys/types.h>
+	<hiredis/hiredis.h>
 	<string>
 	<iostream>
 
@@ -146,13 +147,13 @@
 	<algorithm>
 	"readconf.h"
 
-1498634575 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
+1498730787 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
 	"servers.h"
 	<boost/random.hpp>
 	<memory.h>
 	<sys/time.h>
 
-1498621413 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
+1498732362 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
 	<muduo/base/Logging.h>
 	<muduo/net/Buffer.h>
 	<muduo/net/Endian.h>
@@ -198,7 +199,7 @@
 	<muduo/base/StringPiece.h>
 	<netinet/in.h>
 
-1498635675 source:/home/bingyu/Work/SmBrkSvr/src/SmBrkrS.cpp
+1498727246 source:/home/bingyu/Work/SmBrkSvr/src/SmBrkrS.cpp
 	<muduo/base/Mutex.h>
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
@@ -300,7 +301,7 @@
 	<queue>
 	<stack>
 
-1498635675 /home/bingyu/Work/SmBrkSvr/inc/servers.h
+1498730441 /home/bingyu/Work/SmBrkSvr/inc/servers.h
 	<stdint.h>
 	<muduo/base/Mutex.h>
 	<muduo/net/EventLoop.h>
@@ -310,7 +311,7 @@
 	"zecodec.h"
 	<set>
 
-1498611667 source:/home/bingyu/Work/SmBrkSvr/src/Hiredis.cc
+1498723075 source:/home/bingyu/Work/SmBrkSvr/src/Hiredis.cc
 	"Hiredis.h"
 	<muduo/base/Logging.h>
 	<muduo/net/Channel.h>
@@ -318,7 +319,7 @@
 	<muduo/net/SocketsOps.h>
 	<hiredis/async.h>
 
-1498611885 /home/bingyu/Work/SmBrkSvr/inc/Hiredis.h
+1498719285 /home/bingyu/Work/SmBrkSvr/inc/Hiredis.h
 	<muduo/base/StringPiece.h>
 	<muduo/base/Types.h>
 	<muduo/net/Callbacks.h>
@@ -339,12 +340,12 @@
 1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/SocketsOps.h
 	<arpa/inet.h>
 
-1498634218 source:/home/bingyu/Work/SmBrkSvr/src/redisWrapper.cpp
+1498724519 source:/home/bingyu/Work/SmBrkSvr/src/redisWrapper.cpp
 	"redisWrapper.h"
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
 	<string>
 
-1498644410 /home/bingyu/Work/SmBrkSvr/inc/redisWrapper.h
+1498724468 /home/bingyu/Work/SmBrkSvr/inc/redisWrapper.h
 	"Hiredis.h"
 

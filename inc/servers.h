@@ -50,10 +50,10 @@ public:
 protected:
     bool CheckCRC(const char*, uint32_t len);
 
-    void DevStatus(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
-    void SaveHistory(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
-    void NewData(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
-    void DevLost(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+    void DevStatus(const TcpConnectionPtr&, Session *, const muduo::string&);
+    void SaveHistory(const TcpConnectionPtr&, Session *, const muduo::string&);
+    void NewData(const TcpConnectionPtr&, Session *, const muduo::string&);
+    void DevLost(const TcpConnectionPtr&, Session *, const muduo::string&);
 
 
     void onConnection(const TcpConnectionPtr& conn);

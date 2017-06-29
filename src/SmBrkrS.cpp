@@ -63,10 +63,10 @@ void SBSMain(void)
 	EventLoopThread tIns, tQuery;
 	Inspector ins(tIns.startLoop(), InetAddress(gConf.monPort_), "Inspector");
 
-	hiredis::redisQuery qRedis(tQuery.startLoop(), InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
+	hiredis::redisQuery qRedis(&loop, InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
 	qRedis.connect();
 
-	hiredis::redisStore sRedis(&loop, InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
+	hiredis::redisStore sRedis(tQuery.startLoop(), InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
     sRedis.connect();
 
 	// Start Agent Listener
