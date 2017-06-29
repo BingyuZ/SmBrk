@@ -2,24 +2,14 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
-	<File name="inc/gconf.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src/SmBrkrS.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="188" topLine="0" />
+			<Cursor1 position="1125" topLine="34" />
 		</Cursor>
 	</File>
-	<File name="src/commons.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src/Hiredis.cc" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="687" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="src/main.cpp" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1921" topLine="54" />
-		</Cursor>
-	</File>
-	<File name="inc/mapp.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="103" topLine="0" />
+			<Cursor1 position="203" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="src/redisWrapper.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -27,19 +17,24 @@
 			<Cursor1 position="1162" topLine="40" />
 		</Cursor>
 	</File>
-	<File name="src/gconf.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="inc/gconf.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="340" topLine="0" />
+			<Cursor1 position="188" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="src/Hiredis.cc" open="1" top="1" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src/commons.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="683" topLine="0" />
+			<Cursor1 position="2950" topLine="111" />
 		</Cursor>
 	</File>
-	<File name="inc/Hiredis.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="inc/mapp.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1027" topLine="34" />
+			<Cursor1 position="103" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="inc/servers.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="915" topLine="14" />
 		</Cursor>
 	</File>
 	<File name="inc/zecodec.h" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -47,24 +42,34 @@
 			<Cursor1 position="4262" topLine="183" />
 		</Cursor>
 	</File>
-	<File name="src/SmBrkrS.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="inc/commons.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1125" topLine="34" />
+			<Cursor1 position="709" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="src/servers.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src/servers.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3845" topLine="138" />
+			<Cursor1 position="4417" topLine="148" />
 		</Cursor>
 	</File>
-	<File name="inc/servers.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="inc/Hiredis.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="915" topLine="35" />
+			<Cursor1 position="1027" topLine="19" />
 		</Cursor>
 	</File>
-	<File name="inc/redisWrapper.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="inc/redisWrapper.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="613" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="src/gconf.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="340" topLine="15" />
+		</Cursor>
+	</File>
+	<File name="src/main.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1921" topLine="54" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

@@ -28,8 +28,12 @@ void errQuit(int ret, const char *msgs);
 FILE *popen2(const char *cmd, pid_t &childpid);
 int pclose2(FILE *fp, pid_t pid);
 
+extern const char *gsFmtLong, *gsFmtStd, *gsFmtCompact;
+
 void MySleep(int mSeconds);
-void FormatTimeString(char *buf, const time_t *tv_sec = NULL);
+void FormatTimeString(char *buf, const char *format,
+                      const time_t *tv_sec = NULL,
+                      bool bLocal = true);
 void FormatDate(char *buf, const time_t *tv_sec = NULL);
 int SecondsInDay();
 

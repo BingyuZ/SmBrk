@@ -1,9 +1,12 @@
 #include "servers.h"
+#include "commons.h"
+#include "redisWrapper.h"
 
 #include <boost/random.hpp>
 
 #include <memory.h>
 #include <sys/time.h>
+
 
 
 #if 0
@@ -150,7 +153,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		        //SessionPtr *pSess = boost::any_cast<SessionPtr>(conn->getMutableContext());
 
                 if (len != 16 || pSess->stage_ != SC_CHSENT || !pSess->CheckPass(message)) {
-                    LOG_WARN << "Stage / password Error";
+                    LOG_WARN << "Stage / password error";
                     conn->shutdown();  // FIXME: disable reading
                     break;
                 }
@@ -162,13 +165,22 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 // If there is a previous instance, kick it out!
 
                 LOG_INFO << "Agent " << aid << " Logged in";
+
+                struct timeval tv;
+                gettimeofday(&tv, NULL);
+
+                // FIXME: Memory leakage???
+                char buf[20], s[100];
+                FormatTimeString(buf, gsFmtCompact, &tv.tv_sec, false);
+                sprintf(s, "set agtLogin:%08x %sZ", aid, buf);
+                LOG_DEBUG << "Redis command: " << s;
+                pSRedis_->aSet(s);
+
                 pSess->GeneratePass();
                 uint32_t data[6];
                 for (int i=0; i<4; i++)
                     data[i] = muduo::net::sockets::networkToHost32(pSess->passwd_[i]);
 
-                struct timeval tv;
-                gettimeofday(&tv, NULL);
                 #if defined __x86_64__
                     data[4] = muduo::net::sockets::networkToHost32(tv.tv_sec >> 32);
                     data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec & 0xffffffffUL);
