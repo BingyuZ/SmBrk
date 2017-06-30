@@ -124,6 +124,27 @@ const char *gsFmtLong = "%4d-%02d-%02d %02d:%02d:%02d";
 const char *gsFmtStd = "%4d%02d%02d %02d:%02d:%02d";
 const char *gsFmtCompact = "%4d%02d%02d%02d%02d%02d";
 
+void FormatZStr(char *buf, struct timeval *pTv, bool bLocal, bool withUs)
+{
+	struct tm tm_time;
+	struct timeval tv;
+
+    if (pTv == NULL)
+    {
+		gettimeofday(&tv, NULL);
+        pTv = &tv;
+    }
+    if (bLocal) localtime_r(&pTv->tv_sec, &tm_time);
+    else gmtime_r(&pTv->tv_sec, &tm_time);
+
+    sprintf(buf, "%2d%02d%02d%02d%02d%02d",
+            tm_time.tm_year - 100, tm_time.tm_mon + 1, tm_time.tm_mday,
+			tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
+    while (*buf) buf++;
+    if (withUs)
+        sprintf(buf, ".%06ld", pTv->tv_usec);
+}
+
 void FormatTimeString(char *buf, const char *format,
                       const time_t *tv_sec, bool bLocal)
 {

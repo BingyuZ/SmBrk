@@ -170,9 +170,9 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 gettimeofday(&tv, NULL);
 
                 // FIXME: Memory leakage???
-                char buf[20], s[100];
-                FormatTimeString(buf, gsFmtCompact, &tv.tv_sec, false);
-                sprintf(s, "set agtLogin:%08x %sZ", aid, buf);
+                char buf[30], s[100];
+                FormatZStr(buf, &tv, false, true);
+                sprintf(s, "lpush agtLogin:%08x IN20%sZ", aid, buf);
                 LOG_DEBUG << "Redis command: " << s;
                 pSRedis_->aSet(s);
 

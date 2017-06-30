@@ -34,6 +34,8 @@ void MySleep(int mSeconds);
 void FormatTimeString(char *buf, const char *format,
                       const time_t *tv_sec = NULL,
                       bool bLocal = true);
+void FormatZStr(char *buf, struct timeval *pTv = NULL,
+                      bool bLocal = true, bool withUs = true);
 void FormatDate(char *buf, const time_t *tv_sec = NULL);
 int SecondsInDay();
 

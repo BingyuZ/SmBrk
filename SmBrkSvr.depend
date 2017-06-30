@@ -90,7 +90,7 @@
 	<algorithm>
 	"readconf.h"
 
-1481604909 source:/home/bingyu/Work/SmBrkSvr/src/commons.cpp
+1498814214 source:/home/bingyu/Work/SmBrkSvr/src/commons.cpp
 	"commons.h"
 	<iostream>
 	<boost/static_assert.hpp>
@@ -105,7 +105,7 @@
 	<fcntl.h>
 	<sys/eventfd.h>
 
-1495874404 /home/bingyu/Work/SmBrkSvr/inc/commons.h
+1498814116 /home/bingyu/Work/SmBrkSvr/inc/commons.h
 	"gconf.h"
 	<unistd.h>
 	<stdlib.h>
@@ -147,8 +147,10 @@
 	<algorithm>
 	"readconf.h"
 
-1498730787 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
+1498814116 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
 	"servers.h"
+	"commons.h"
+	"redisWrapper.h"
 	<boost/random.hpp>
 	<memory.h>
 	<sys/time.h>
