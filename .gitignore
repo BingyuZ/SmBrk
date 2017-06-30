@@ -34,3 +34,6 @@
 # Temperate files
 obj/*
 bin/*
+
+# IDE layout
+*.layout
