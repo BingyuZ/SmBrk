@@ -46,6 +46,7 @@
 		</Linker>
 		<Unit filename="inc/Hiredis.h" />
 		<Unit filename="inc/commons.h" />
+		<Unit filename="inc/devInfo.h" />
 		<Unit filename="inc/gconf.h" />
 		<Unit filename="inc/mapp.h" />
 		<Unit filename="inc/readconf.h" />

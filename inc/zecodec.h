@@ -45,10 +45,9 @@ enum CommandAgt {
     CAS_KALIVE  = 9,
 
     CAA_DEVSTA  = 0x10,
-    CAA_DEVLOST = 0x12,
-    CAA_DEVHIS  = 0x14,
-
     CAS_DEVANS  = 0x11,
+//  CAA_DEVLOST = 0x12,
+//  CAA_DEVHIS  = 0x14,
 
     CAA_DATA    = 0x20,
     CAS_DACK    = 0x21,
@@ -152,7 +151,8 @@ public:
 		conn_->send(&buf);
 	}
 
-	void sendPacket(CommandAgt type, const void *pBuf, uint32_t length)
+	void sendPacket(CommandAgt type, const void *pBuf, uint32_t length,
+                    const uint32_t *pwd = NULL)
 	{
 	    const char *ptr = (const char *)pBuf;
 
@@ -175,6 +175,7 @@ public:
 		buf.prependInt32(first);
 
 		// encrypt here
+		// If pwd == NULL, using passwd_, else pwd
 		for (uint32_t i=0; i<length; i+=8) {
             buf.append(ptr, 8);
             ptr += 8;

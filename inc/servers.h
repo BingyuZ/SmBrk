@@ -11,6 +11,7 @@
 #include <muduo/net/inspect/Inspector.h>
 
 #include "zecodec.h"
+#include "devInfo.h"
 
 #include <set>
 
@@ -51,9 +52,9 @@ protected:
     bool CheckCRC(const char*, uint32_t len);
 
     void DevStatus(const TcpConnectionPtr&, Session *, const muduo::string&);
-    void SaveHistory(const TcpConnectionPtr&, Session *, const muduo::string&);
     void NewData(const TcpConnectionPtr&, Session *, const muduo::string&);
-    void DevLost(const TcpConnectionPtr&, Session *, const muduo::string&);
+//    void SaveHistory(const TcpConnectionPtr&, Session *, const muduo::string&);
+//    void DevLost(const TcpConnectionPtr&, Session *, const muduo::string&);
 
 
     void onConnection(const TcpConnectionPtr& conn);

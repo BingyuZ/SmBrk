@@ -147,11 +147,13 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
             Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
 
             cmd = *pC1;
-            muduo::string message(buf->peek(), len);
 
 		    if (cmd == CAA_LOGANS) {   // Decryption not needed for LOGANS.
 		        //SessionPtr *pSess = boost::any_cast<SessionPtr>(conn->getMutableContext());
+                muduo::string message(buf->peek(), len);
 
+		        // FIXME: Add information
+		        // Maybe expanded in the future
                 if (len != 16 || pSess->stage_ != SC_CHSENT || !pSess->CheckPass(message)) {
                     LOG_WARN << "Stage / password error";
                     conn->shutdown();  // FIXME: disable reading
@@ -176,6 +178,11 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 LOG_DEBUG << "Redis command: " << s;
                 pSRedis_->aSet(s);
 
+                uint32_t pwd[4];
+                pwd[0] = pSess->passwd_[0];
+                pwd[1] = pSess->passwd_[2];
+                memcpy(pwd+2, pC1+4, 8);
+
                 pSess->GeneratePass();
                 uint32_t data[6];
                 for (int i=0; i<4; i++)
@@ -188,10 +195,11 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                     data[4] = 0;
                     data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec);
                 #endif
-                pSess->sendPacket(CAS_LOGRES, data, 24);
+                pSess->sendPacket(CAS_LOGRES, data, 24, pwd);
 
 		    }   // CAA_LOGANS
 		    else {
+                muduo::string message;
                 if (pSess->stage_ != SC_PASSED || !pSess->decrypt(pC1, &message, len)) {
                     LOG_WARN << "Stage / decryption error";
                     conn->shutdown();
@@ -206,14 +214,8 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 case CAA_DEVSTA:
                     DevStatus(conn, pSess, message);
                     break;
-                case CAA_DEVHIS:
-                    SaveHistory(conn, pSess, message);
-                    break;
                 case CAA_DATA:
                     NewData(conn, pSess, message);
-                    break;
-                case CAA_DEVLOST:
-                    DevLost(conn, pSess, message);
                     break;
                 default:
                     LOG_WARN << "Unknown command type: " << cmd;
@@ -230,27 +232,50 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
 {
+    uint16_t tLen = 0;
+    std::set<uint64_t> ts;
+    uint64_t dId;
 
+    while (tLen < message.length()) {
+        DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + tLen);
+        tLen += muduo::net::sockets::networkToHost16(pInfo->len_);
+        if (tLen > message.length()) break;
+        dId = Get64(pInfo);
+        switch (pInfo->type_) {
+        case DP_BASIC:
+            {
+                DevBasic *pDev = (DevBasic *)pInfo->con_;
+                // TODO: Query and back?
+            }
+            break;
+        case DP_LOST:
+            // Record & broadcast device lost
+            // Write device lost
+            if (ts.count(dId) == 0) {
+                ts.insert(dId);
+                SendDevAck(conn, dId);
+            }
+            break;
+        case DP_ERRHIS:
+            //
+            if (ts.count(dId) == 0) {
+                ts.insert(dId);
+                SendDevAck(conn, dId);
+            }
+            break;
+        case DP_ERRHISF:
 
-}
-
-void AgtServer::SaveHistory(const TcpConnectionPtr& conn,
-                          Session * pSess,
-                          const muduo::string& message)
-{
-
-
+            if (ts.count(dId) == 0) {
+                ts.insert(dId);
+                SendDevAck(conn, dId);
+            }
+            break;
+        default: break;
+        }
+    }
 }
 
 void AgtServer::NewData(const TcpConnectionPtr& conn,
-                          Session * pSess,
-                          const muduo::string& message)
-{
-
-
-}
-
-void AgtServer::DevLost(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
 {
