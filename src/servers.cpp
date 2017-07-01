@@ -38,6 +38,51 @@ uint32_t GetMyRand(bool t)
     }
 }
 
+uint64_t Get64FromDevInfo(DevInfoHeader *pInfo)
+{
+    uint64_t r = pInfo->devType_;
+    for (int i=0; i<6; i++)
+        r = (r << 8) | pInfo->dID_[i];
+    return r;
+}
+
+void Session::sendDevAck(DevInfoHeader *pInfo)
+{
+    DevInfoHeader head;
+
+    head.type_ = DP_ACK;
+    head.devType_ = pInfo->devType_;
+    memcpy(head.dID_, pInfo->dID_, 6);
+    head.len_ = sizeof(head);
+
+    sendPacket(CAS_DEVANS, &head, head.len_);
+}
+
+void Session::sendLogRes(const char *pC1)
+{
+    uint32_t pwd[4];
+    pwd[0] = passwd_[0];
+    pwd[1] = passwd_[1];
+    memcpy(pwd+2, pC1+4, 8);
+
+    GeneratePass();
+    uint32_t data[6];
+    for (int i=0; i<4; i++)
+        data[i] = muduo::net::sockets::networkToHost32(passwd_[i]);
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    #if defined __x86_64__
+        data[4] = muduo::net::sockets::networkToHost32(tv.tv_sec >> 32);
+        data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec & 0xffffffffUL);
+    #else
+        data[4] = 0;
+        data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec);
+    #endif
+    sendPacket(CAS_LOGRES, data, 24, pwd);
+}
+
 #if 0
 void FillPacketHeader(PacketHeader *pH, enum CommandAgt cmd, bool genSalt)
 {
@@ -79,11 +124,10 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
         conn->setContext(sess);
         connections_.insert(conn);
 	}
-	else{
-            {
-                Session* pSess = boost::any_cast<Session>(conn->getMutableContext());
-                pSess->ResetConn();
-            }
+	else
+    {
+        Session* pSess = boost::any_cast<Session>(conn->getMutableContext());
+        pSess->ResetConn();
 
         MutexLockGuard lock(mutex_);
         conn->setContext(NULL);
@@ -167,36 +211,10 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 // If there is a previous instance, kick it out!
 
                 LOG_INFO << "Agent " << aid << " Logged in";
+                // FIXME: More info
+                pSRedis_->agentLogin(aid);
 
-                struct timeval tv;
-                gettimeofday(&tv, NULL);
-
-                // FIXME: Memory leakage???
-                char buf[30], s[100];
-                FormatZStr(buf, &tv, false, true);
-                sprintf(s, "lpush agtLogin:%08x IN20%sZ", aid, buf);
-                LOG_DEBUG << "Redis command: " << s;
-                pSRedis_->aSet(s);
-
-                uint32_t pwd[4];
-                pwd[0] = pSess->passwd_[0];
-                pwd[1] = pSess->passwd_[2];
-                memcpy(pwd+2, pC1+4, 8);
-
-                pSess->GeneratePass();
-                uint32_t data[6];
-                for (int i=0; i<4; i++)
-                    data[i] = muduo::net::sockets::networkToHost32(pSess->passwd_[i]);
-
-                #if defined __x86_64__
-                    data[4] = muduo::net::sockets::networkToHost32(tv.tv_sec >> 32);
-                    data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec & 0xffffffffUL);
-                #else
-                    data[4] = 0;
-                    data[5] = muduo::net::sockets::networkToHost32(tv.tv_sec);
-                #endif
-                pSess->sendPacket(CAS_LOGRES, data, 24, pwd);
-
+                pSess->sendLogRes(pC1);
 		    }   // CAA_LOGANS
 		    else {
                 muduo::string message;
@@ -228,6 +246,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
     }
 }
 
+
 void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
@@ -240,7 +259,7 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
         DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + tLen);
         tLen += muduo::net::sockets::networkToHost16(pInfo->len_);
         if (tLen > message.length()) break;
-        dId = Get64(pInfo);
+        dId = Get64FromDevInfo(pInfo);
         switch (pInfo->type_) {
         case DP_BASIC:
             {
@@ -253,21 +272,21 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
             // Write device lost
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
-                SendDevAck(conn, dId);
+                pSess->sendDevAck(pInfo);
             }
             break;
         case DP_ERRHIS:
             //
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
-                SendDevAck(conn, dId);
+                pSess->sendDevAck(pInfo);
             }
             break;
         case DP_ERRHISF:
 
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
-                SendDevAck(conn, dId);
+                pSess->sendDevAck(pInfo);
             }
             break;
         default: break;

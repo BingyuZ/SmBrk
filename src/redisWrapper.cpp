@@ -4,6 +4,7 @@
 #include <muduo/net/EventLoop.h>
 
 #include <string>
+#include "commons.h"
 
 using namespace muduo;
 using namespace muduo::net;
@@ -76,6 +77,16 @@ int redisStore::aSet(const muduo::StringPiece &cmd)
 
   loop_->runInLoop(boost::bind(&redisStore::store, this, cmd));
   return 0;
+}
+
+void redisStore::agentLogin(uint32_t aid)
+{
+    // FIXME: Memory leakage???
+    char buf[30], s[100];
+    FormatZStr(buf, NULL, false, true);
+    sprintf(s, "lpush agtLogin:%08x IN20%sZ", aid, buf);
+    LOG_DEBUG << "Redis command: " << s;
+    aSet(s);
 }
 
 

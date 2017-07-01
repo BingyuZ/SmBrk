@@ -56,7 +56,6 @@ protected:
 //    void SaveHistory(const TcpConnectionPtr&, Session *, const muduo::string&);
 //    void DevLost(const TcpConnectionPtr&, Session *, const muduo::string&);
 
-
     void onConnection(const TcpConnectionPtr& conn);
 
     void onMessage(const TcpConnectionPtr& conn,

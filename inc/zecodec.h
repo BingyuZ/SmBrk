@@ -187,6 +187,9 @@ public:
 		conn_->send(&buf);
 	}
 
+	void sendDevAck(struct DevInfoHeader *);
+	void sendLogRes(const char *);
+
 	uint64_t getEnc(uint64_t salt)
 	{
 	    return 0;

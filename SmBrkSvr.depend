@@ -352,7 +352,7 @@
 1498724468 /home/bingyu/Work/SmBrkSvr/inc/redisWrapper.h
 	"Hiredis.h"
 
-1498748821 source:/home/bingyu/Work/SmBrk/src/commons.cpp
+1498824538 source:/home/bingyu/Work/SmBrk/src/commons.cpp
 	"commons.h"
 	<iostream>
 	<boost/static_assert.hpp>
@@ -367,7 +367,7 @@
 	<fcntl.h>
 	<sys/eventfd.h>
 
-1498750107 /home/bingyu/Work/SmBrk/inc/commons.h
+1498824538 /home/bingyu/Work/SmBrk/inc/commons.h
 	"gconf.h"
 	<unistd.h>
 	<stdlib.h>
@@ -428,13 +428,14 @@
 	<algorithm>
 	"readconf.h"
 
-1498740706 source:/home/bingyu/Work/SmBrk/src/redisWrapper.cpp
+1498916096 source:/home/bingyu/Work/SmBrk/src/redisWrapper.cpp
 	"redisWrapper.h"
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
 	<string>
+	"commons.h"
 
-1498740706 /home/bingyu/Work/SmBrk/inc/redisWrapper.h
+1498916017 /home/bingyu/Work/SmBrk/inc/redisWrapper.h
 	"Hiredis.h"
 
 1498740706 source:/home/bingyu/Work/SmBrk/src/SmBrkrS.cpp
@@ -456,7 +457,7 @@
 	"redisWrapper.h"
 	"servers.h"
 
-1498740706 /home/bingyu/Work/SmBrk/inc/servers.h
+1498916017 /home/bingyu/Work/SmBrk/inc/servers.h
 	<stdint.h>
 	<muduo/base/Mutex.h>
 	<muduo/net/EventLoop.h>
@@ -464,9 +465,10 @@
 	<muduo/net/InetAddress.h>
 	<muduo/net/inspect/Inspector.h>
 	"zecodec.h"
+	"devInfo.h"
 	<set>
 
-1498740706 /home/bingyu/Work/SmBrk/inc/zecodec.h
+1498916017 /home/bingyu/Work/SmBrk/inc/zecodec.h
 	<muduo/base/Logging.h>
 	<muduo/net/Buffer.h>
 	<muduo/net/Endian.h>
@@ -477,5 +479,8 @@
 	<cassert>
 
 1498900204 /home/bingyu/Work/SmBrkSvr/inc/devInfo.h
+	<stdint.h>
+
+1498911974 /home/bingyu/Work/SmBrk/inc/devInfo.h
 	<stdint.h>
 
