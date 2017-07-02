@@ -62,13 +62,13 @@ void redisStore::connect(void)
     loop_->runInLoop(boost::bind(&Hiredis::connect, &hRedis_));
 }
 
-void redisStore::store(const muduo::StringPiece &cmd)
+void redisStore::store(const muduo::string &cmd)
 {
     hRedis_.command(boost::bind(setCallback, _1, _2), cmd.data());
 }
 
 // Firewall :)
-int redisStore::aSet(const muduo::StringPiece &cmd)
+int redisStore::aSet(const muduo::string &cmd)
 {
   if (!connected()) {
     LOG_WARN << "Not connected";
@@ -85,6 +85,45 @@ void redisStore::agentLogin(uint32_t aid)
     char buf[30], s[100];
     FormatZStr(buf, NULL, false, true);
     sprintf(s, "lpush agtLogin:%08x IN20%sZ", aid, buf);
+    LOG_DEBUG << "Redis command: " << s;
+    aSet(s);
+}
+
+const char hexStr[] = "0123456789abcdef";
+
+static void formatGPRS(char *buf, const GPRSInfo* pGprs)
+{
+    int i;
+
+    *buf++='$';
+    *buf++='I';
+    for (i=0; i<7; i++) {
+        *buf++ = hexStr[pGprs->IMEI_[i]/16];
+        *buf++ = hexStr[pGprs->IMEI_[i]%16];
+    }
+    *buf++ = hexStr[pGprs->IMEI_[7]/16];
+
+    sprintf(buf, "$O%03d-%02d$N",
+            pGprs->opid_[0]*256+pGprs->opid_[1], pGprs->opid_[3]);
+    while (*buf) ++buf;
+
+    for (i=0; i<10; i++) {
+        *buf++ = hexStr[pGprs->ccid_[i]/16];
+        *buf++ = hexStr[pGprs->ccid_[i]%16];
+    }
+
+    sprintf(buf, "$L%02x%02x$C%02x%02x$A%d$B%d",
+            pGprs->lac_[0], pGprs->lac_[1], pGprs->ci_[0], pGprs->ci_[1],
+            pGprs->asu_, pGprs->ber_);
+}
+
+void redisStore::agentLogin(uint32_t aid, const GPRSInfo* pGprs)
+{
+    // FIXME: Memory leakage???
+    char buf[30], buf1[100], s[200];
+    FormatZStr(buf, NULL, false, true);
+    formatGPRS(buf1, pGprs);
+    sprintf(s, "lpush agtLogin:%08x IN20%sZ%s", aid, buf, buf1);
     LOG_DEBUG << "Redis command: " << s;
     aSet(s);
 }

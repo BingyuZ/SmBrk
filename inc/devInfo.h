@@ -75,4 +75,15 @@ struct DevDatawF {
     uint16_t rawData_[0];
 };
 
+
+struct GPRSInfo {
+    uint8_t  IMEI_[8];
+    uint8_t  opid_[4];
+    uint8_t  ccid_[10];
+    uint8_t  lac_[2];
+    uint8_t  ci_[2];
+    int8_t   asu_;
+    uint8_t  ber_;
+};
+
 #endif // DEVINFO_H

@@ -76,7 +76,7 @@ struct PacketHeader {
     };
 
 //    uint32_t    body_[0];
-    char        body_[0];
+    uint8_t      body_[0];
 };
 
 extern uint32_t GetMyRand(bool t=true);
@@ -209,7 +209,7 @@ public:
             msg->append(src, 8);
             src += 8;
 	    }
-	    LOG_DEBUG << msg->length()-12 << " bytes decrypted";
+	    LOG_DEBUG << msg->length() << " bytes decrypted";
 
 	    return true;
     }

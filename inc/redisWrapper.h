@@ -1,6 +1,7 @@
 #ifndef ZE_REDIS_WRAPPER_H
 #define ZE_REDIS_WRAPPER_H
 
+#include "devInfo.h"
 #include "Hiredis.h"
 
 namespace hiredis
@@ -19,11 +20,12 @@ class redisStore : public boost::enable_shared_from_this<redisStore>,
 
   void connect(void);
 
-  void store(const muduo::StringPiece &cmd);
+  void store(const muduo::string &cmd);
 
-  int aSet(const muduo::StringPiece &cmd);
+  int aSet(const muduo::string &cmd);
 
   void agentLogin(uint32_t);
+  void agentLogin(uint32_t, const GPRSInfo*);
 
   //void setPair(const muduo::StringPiece &key, const muduo::StringPiece &value);
   //void genSet(const muduo::StringPiece &cmd);

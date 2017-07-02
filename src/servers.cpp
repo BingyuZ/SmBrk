@@ -46,6 +46,19 @@ uint64_t Get64FromDevInfo(DevInfoHeader *pInfo)
     return r;
 }
 
+static int GetGPRSInfo(GPRSInfo *pInfo, const muduo::string&msg)
+{
+    PacketHeader *pHeader = (PacketHeader *)msg.data();
+    int type = pHeader->body_[4]*256 + pHeader->body_[5];
+    unsigned length = pHeader->body_[6]*256 + pHeader->body_[7];
+
+    if (msg.length() < length + 0x10) return -1;
+    if (type != 1) return -2;
+
+    memcpy(pInfo, pHeader->body_+8, length);
+    return type;
+}
+
 void Session::sendDevAck(DevInfoHeader *pInfo)
 {
     DevInfoHeader head;
@@ -181,39 +194,43 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 conn->shutdown();  // FIXME: disable reading
                 break;
 		    }
-
 		    pC1 += 2;
             buf->retrieve(kHeaderLen);  // 4
-
 		    LOG_DEBUG << "Packet received, len=" << len << ", Type: " << 0L+*pC1;
 
             assert(!conn->getContext().empty());
             Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
 
             cmd = *pC1;
-
 		    if (cmd == CAA_LOGANS) {   // Decryption not needed for LOGANS.
 		        //SessionPtr *pSess = boost::any_cast<SessionPtr>(conn->getMutableContext());
                 muduo::string message(buf->peek(), len);
-
-		        // FIXME: Add information
-		        // Maybe expanded in the future
-                if (len != 16 || pSess->stage_ != SC_CHSENT || !pSess->CheckPass(message)) {
+                if ((len != 16 && len <20) || pSess->stage_ != SC_CHSENT
+                     || !pSess->CheckPass(message)) {
                     LOG_WARN << "Stage / password error";
                     conn->shutdown();  // FIXME: disable reading
                     break;
                 }
                 uint32_t aid = muduo::net::sockets::networkToHost32(*(uint32_t *)(pC1+12));
-
                 buf->retrieve(len + 4);
 
-                // TODO: Log & more work
-                // If there is a previous instance, kick it out!
-
-                LOG_INFO << "Agent " << aid << " Logged in";
-                // FIXME: More info
-                pSRedis_->agentLogin(aid);
-
+                if (len == 16) {
+                    LOG_INFO << "Agent " << aid << " Logged in";
+                    pSRedis_->agentLogin(aid);
+                }
+                else {
+                    GPRSInfo gprs;
+                    int ret;
+                    if ((ret = GetGPRSInfo(&gprs, message)) > 0) {
+                        LOG_INFO << "Agent " << aid << " Logged in, ASU=" << gprs.asu_;
+                        pSRedis_->agentLogin(aid, &gprs);
+                    }
+                    else {
+                        LOG_WARN << "GPRSInfo error:" << ret;
+                        conn->shutdown();  // FIXME: disable reading
+                        break;
+                    }
+                }
                 pSess->sendLogRes(pC1);
 		    }   // CAA_LOGANS
 		    else {
