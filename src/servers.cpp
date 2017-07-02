@@ -38,9 +38,40 @@ uint32_t GetMyRand(bool t)
     }
 }
 
+static const char hexStr[] = "0123456789abcdef";
+
+char *GetIdfrom64(uint64_t t)
+{
+    static char tId[20];
+    uint8_t k;
+    char *tt = tId;
+
+    for (int i=0; i<8; i++) {
+        k = (t >> 56);
+        t <<= 8;
+        *tt++ = hexStr[k/16];
+        *tt++ = hexStr[k%16];
+    }
+    *tt = 0;
+    return tId;
+}
+
+char *PrintId(const uint8_t *p)
+{
+    static char tId[20];
+    char *tt = tId;
+    for (int i=0; i<6; i++) {
+        *tt++ = hexStr[p[i] / 16];
+        *tt++ = hexStr[p[i] % 16];
+    }
+    *tt = 0;
+    return tId;
+}
+
 uint64_t Get64FromDevInfo(DevInfoHeader *pInfo)
 {
-    uint64_t r = pInfo->devType_;
+    uint64_t r = 0;
+    //= pInfo->devType_;
     for (int i=0; i<6; i++)
         r = (r << 8) | pInfo->dID_[i];
     return r;
@@ -64,7 +95,7 @@ void Session::sendDevAck(DevInfoHeader *pInfo)
     DevInfoHeader head;
 
     head.type_ = DP_ACK;
-    head.devType_ = pInfo->devType_;
+    //head.devType_ = pInfo->devType_;
     memcpy(head.dID_, pInfo->dID_, 6);
     head.len_ = sizeof(head);
 
@@ -268,15 +299,19 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
 {
-    uint16_t tLen = 0;
+    uint16_t pos = 0;
     std::set<uint64_t> ts;
     uint64_t dId;
 
-    while (tLen < message.length()) {
-        DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + tLen);
-        tLen += muduo::net::sockets::networkToHost16(pInfo->len_);
-        if (tLen > message.length()) break;
+    while (pos + 4 < (uint16_t)message.length()) {
+        DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + pos);
+
+        LOG_DEBUG << "Pos:" << pos << " Len:" << pInfo->len_
+                  << " Type:" << pInfo->type_ << " ID:" << PrintId(pInfo->dID_);
+        pos += pInfo->len_;
+        if (pos > message.length()) break;
         dId = Get64FromDevInfo(pInfo);
+        continue;
         switch (pInfo->type_) {
         case DP_BASIC:
             {

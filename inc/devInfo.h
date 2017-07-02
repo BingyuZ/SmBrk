@@ -28,9 +28,9 @@ enum DevPkType {
 } ;
 
 struct DevInfoHeader {
-    uint16_t len_;
-    uint16_t type_;
-    uint16_t devType_;
+    uint8_t len_;
+    uint8_t type_;
+    //uint16_t devType_;
     uint8_t dID_[6];
     uint8_t con_[0];
 };
@@ -46,16 +46,18 @@ struct DevBasic {
 struct DevErrHis {
     uint8_t  lastReason_;
     uint8_t  rev_;
-    uint16_t duration_;
-    uint8_t  time_[12];
+    uint8_t  duration_[2];
+    uint8_t  time_[6];
+    uint16_t rev2_;
 };      // Used for DP_LERROR as well
 
 struct DevErrHisF {
     uint8_t  lastReason_;
     uint8_t  rev_;
-    uint16_t duration_;
-    uint8_t  time_[12];
-    uint16_t curr_[4];
+    uint8_t  duration_[2];
+    uint8_t  time_[6];
+    uint16_t rev2_;
+    uint8_t  curr_[8];
 };
 
 struct DevData {

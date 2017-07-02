@@ -428,7 +428,7 @@
 	<algorithm>
 	"readconf.h"
 
-1498974167 source:/home/bingyu/Work/SmBrk/src/redisWrapper.cpp
+1499004711 source:/home/bingyu/Work/SmBrk/src/redisWrapper.cpp
 	"redisWrapper.h"
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
@@ -482,7 +482,7 @@
 1498900204 /home/bingyu/Work/SmBrkSvr/inc/devInfo.h
 	<stdint.h>
 
-1498965161 /home/bingyu/Work/SmBrk/inc/devInfo.h
+1498993796 /home/bingyu/Work/SmBrk/inc/devInfo.h
 	<stdint.h>
 
 1498972884 source:/home/bingyu/Work/SmBrk/src/servers.cpp

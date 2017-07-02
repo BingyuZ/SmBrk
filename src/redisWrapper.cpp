@@ -89,7 +89,7 @@ void redisStore::agentLogin(uint32_t aid)
     aSet(s);
 }
 
-const char hexStr[] = "0123456789abcdef";
+static const char hexStr[] = "0123456789abcdef";
 
 static void formatGPRS(char *buf, const GPRSInfo* pGprs)
 {
