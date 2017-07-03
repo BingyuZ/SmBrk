@@ -56,16 +56,13 @@ char *GetIdfrom64(uint64_t t)
     return tId;
 }
 
-char *PrintId(const uint8_t *p)
+void PrintId(const uint8_t *p, char *tt)
 {
-    static char tId[20];
-    char *tt = tId;
     for (int i=0; i<6; i++) {
         *tt++ = hexStr[p[i] / 16];
         *tt++ = hexStr[p[i] % 16];
     }
     *tt = 0;
-    return tId;
 }
 
 uint64_t Get64FromDevInfo(DevInfoHeader *pInfo)
@@ -92,13 +89,35 @@ static int GetGPRSInfo(GPRSInfo *pInfo, const muduo::string&msg)
 
 bool Session::addDevice(const uint8_t *dId, uint8_t modId)
 {
-
-
+    // First, search whether is same id
+    int i;
+    for (i=0; i<MAXDEV; i++) {
+        if (!memcmp(dId, devId_[i].dId_, 6)) {
+            devId_[i].modId_ = modId;
+            devId_[i].sta_ = 1;     // Active
+            return true;
+        }
+    }
+    for (i=0; i<MAXDEV; i++) {
+        if (devId_[i].sta_ == 0) {
+            memcpy(devId_[i].dId_, dId, 6);
+            devId_[i].modId_ = modId;
+            devId_[i].sta_ = 1;
+            return true;
+        }
+    }
+    return false;
 }
 
 void Session::delDevice(const uint8_t *dId)
 {
-
+    int i;
+    for (i=0; i<MAXDEV; i++) {
+        if (!memcmp(dId, devId_[i].dId_, 6)) {
+            devId_[i].sta_ = 0;    // Active
+            return;
+        }
+    }
 }
 
 void Session::sendDevAck(DevInfoHeader *pInfo)
@@ -316,9 +335,12 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
 
     while (pos + 4 < (uint16_t)message.length()) {
         DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + pos);
+        char Sid[20];
+
+        PrintId(pInfo->dID_, Sid);
 
         LOG_DEBUG << "Pos:" << pos << " Type:" << pInfo->type_
-                  << " Len:" << pInfo->len_ << " ID:" << PrintId(pInfo->dID_);
+                  << " Len:" << pInfo->len_ << " ID:" << Sid;
         pos += pInfo->len_;
         if (pos > message.length()) break;
         dId = Get64FromDevInfo(pInfo);

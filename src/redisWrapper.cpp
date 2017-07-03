@@ -10,6 +10,21 @@ using namespace muduo;
 using namespace muduo::net;
 using namespace hiredis;
 
+extern void PrintId(const uint8_t *p, char *tt);
+static const char hexStr[] = "0123456789abcdef";
+
+void formatET(char *t, const uint8_t *eT)
+{
+    *t++ = '2';
+    *t++ = '0';
+    for (int i=0; i<6; i++) {
+        *t++ = hexStr[*eT / 16];
+        *t++ = hexStr[*eT % 16];
+        eT++;
+    }
+    *t = 0;
+}
+
 string toString(long long value)
 {
   char buf[32];
@@ -89,8 +104,6 @@ void redisStore::agentLogin(uint32_t aid)
     aSet(s);
 }
 
-static const char hexStr[] = "0123456789abcdef";
-
 static void formatGPRS(char *buf, const GPRSInfo* pGprs)
 {
     int i;
@@ -119,7 +132,6 @@ static void formatGPRS(char *buf, const GPRSInfo* pGprs)
 
 void redisStore::agentLogin(uint32_t aid, const GPRSInfo* pGprs)
 {
-    // FIXME: Memory leakage???
     char buf[30], buf1[100], s[200];
     FormatZStr(buf, NULL, false, true);
     formatGPRS(buf1, pGprs);
@@ -128,6 +140,35 @@ void redisStore::agentLogin(uint32_t aid, const GPRSInfo* pGprs)
     aSet(s);
 }
 
+void redisStore::errHist(const uint8_t *dId, const struct DevErrHis *err)
+{
+    char Sid[20], t[20], s[100];
+    uint16_t dur = err->duration_[0]*256 + err->duration_[1];
+
+    PrintId(dId, s);
+    formatET(t, err->time_);
+
+    sprintf(s, "lpush devErr:%s %02X%s$%6.2f",
+                Sid, err->lastReason_, t, dur/100.0);
+    LOG_DEBUG << "Redis command: " << s;
+    aSet(s);
+}
+
+void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
+{
+    char Sid[20], t[20], s[200];
+    uint16_t dur = err->duration_[0]*256 + err->duration_[1];
+
+    PrintId(dId, s);
+    formatET(t, err->time_);
+
+    sprintf(s, "lpush devErr:%s %02X%s$%6.2f$d%d$%d$%d$%d",
+                Sid, err->lastReason_, t, dur/100.0,
+                err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
+                err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
+    LOG_DEBUG << "Redis command: " << s;
+    aSet(s);
+}
 
 #if 0
 void redisStore::setPair(const muduo::StringPiece &key, const muduo::StringPiece &value)

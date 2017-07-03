@@ -188,8 +188,8 @@ public:
 		conn_->send(&buf);
 	}
 
-	bool addDevice(const uint8_t *dId, uint8_t modId);
-	void delDevice(const uint8_t *dId);
+	bool addDevice(const uint8_t *, uint8_t);
+	void delDevice(const uint8_t *);
 
 	void sendDevAck(struct DevInfoHeader *);
 	void sendLogRes(const char *);

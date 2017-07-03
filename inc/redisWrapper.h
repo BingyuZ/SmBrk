@@ -4,6 +4,7 @@
 #include "devInfo.h"
 #include "Hiredis.h"
 
+
 namespace hiredis
 {
 
