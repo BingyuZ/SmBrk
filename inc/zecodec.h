@@ -81,6 +81,7 @@ struct PacketHeader {
 
 extern uint32_t GetMyRand(bool t=true);
 
+
 class Session {
 public:
     explicit Session(const TcpConnectionPtr& conn)
@@ -88,7 +89,7 @@ public:
     {
         rev_ = AU_ENCRY;
         for (int i=0; i<MAXDEV; i++)
-            devId_[i] = 0xFFFFFFFFUL;
+            devId_[i].uId_ = 0;
         agentId_ = 0;
         passwd_[0] = GetMyRand();
         passwd_[1] = GetMyRand();
@@ -187,6 +188,9 @@ public:
 		conn_->send(&buf);
 	}
 
+	bool addDevice(const uint8_t *dId, uint8_t modId);
+	void delDevice(const uint8_t *dId);
+
 	void sendDevAck(struct DevInfoHeader *);
 	void sendLogRes(const char *);
 
@@ -222,7 +226,15 @@ public:
     uint8_t     rev_;
     uint32_t    passwd_[4];
     uint64_t    agentId_;
-    uint64_t    devId_[MAXDEV]; // 12 BCD
+
+    union   {
+        uint64_t uId_;
+        struct {
+            uint8_t dId_[6];
+            uint8_t modId_;
+            uint8_t sta_;
+        };
+    } devId_[MAXDEV];
 
  private:
     TcpConnectionPtr conn_;     // Must do! An assignment

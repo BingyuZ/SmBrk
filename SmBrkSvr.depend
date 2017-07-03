@@ -147,7 +147,7 @@
 	<algorithm>
 	"readconf.h"
 
-1498895948 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
+1499042814 source:/home/bingyu/Work/SmBrkSvr/src/servers.cpp
 	"servers.h"
 	"commons.h"
 	"redisWrapper.h"
@@ -155,7 +155,7 @@
 	<memory.h>
 	<sys/time.h>
 
-1498897645 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
+1499051722 /home/bingyu/Work/SmBrkSvr/inc/zecodec.h
 	<muduo/base/Logging.h>
 	<muduo/net/Buffer.h>
 	<muduo/net/Endian.h>
@@ -303,7 +303,7 @@
 	<queue>
 	<stack>
 
-1498895948 /home/bingyu/Work/SmBrkSvr/inc/servers.h
+1499042539 /home/bingyu/Work/SmBrkSvr/inc/servers.h
 	<stdint.h>
 	<muduo/base/Mutex.h>
 	<muduo/net/EventLoop.h>
@@ -343,13 +343,15 @@
 1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/SocketsOps.h
 	<arpa/inet.h>
 
-1498724519 source:/home/bingyu/Work/SmBrkSvr/src/redisWrapper.cpp
+1499042539 source:/home/bingyu/Work/SmBrkSvr/src/redisWrapper.cpp
 	"redisWrapper.h"
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
 	<string>
+	"commons.h"
 
-1498724468 /home/bingyu/Work/SmBrkSvr/inc/redisWrapper.h
+1499042539 /home/bingyu/Work/SmBrkSvr/inc/redisWrapper.h
+	"devInfo.h"
 	"Hiredis.h"
 
 1498824538 source:/home/bingyu/Work/SmBrk/src/commons.cpp
@@ -479,7 +481,7 @@
 	<boost/noncopyable.hpp>
 	<cassert>
 
-1498900204 /home/bingyu/Work/SmBrkSvr/inc/devInfo.h
+1499042539 /home/bingyu/Work/SmBrkSvr/inc/devInfo.h
 	<stdint.h>
 
 1498993796 /home/bingyu/Work/SmBrk/inc/devInfo.h

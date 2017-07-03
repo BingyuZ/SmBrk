@@ -90,6 +90,17 @@ static int GetGPRSInfo(GPRSInfo *pInfo, const muduo::string&msg)
     return type;
 }
 
+bool Session::addDevice(const uint8_t *dId, uint8_t modId)
+{
+
+
+}
+
+void Session::delDevice(const uint8_t *dId)
+{
+
+}
+
 void Session::sendDevAck(DevInfoHeader *pInfo)
 {
     DevInfoHeader head;
@@ -306,36 +317,52 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
     while (pos + 4 < (uint16_t)message.length()) {
         DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + pos);
 
-        LOG_DEBUG << "Pos:" << pos << " Len:" << pInfo->len_
-                  << " Type:" << pInfo->type_ << " ID:" << PrintId(pInfo->dID_);
+        LOG_DEBUG << "Pos:" << pos << " Type:" << pInfo->type_
+                  << " Len:" << pInfo->len_ << " ID:" << PrintId(pInfo->dID_);
         pos += pInfo->len_;
         if (pos > message.length()) break;
         dId = Get64FromDevInfo(pInfo);
-        continue;
+
         switch (pInfo->type_) {
         case DP_BASIC:
             {
                 DevBasic *pDev = (DevBasic *)pInfo->con_;
-                // TODO: Query and back?
+                if (!pSess->addDevice(pInfo->dID_, pDev->modId_)) {
+                    // Too many device?
+                    LOG_DEBUG << "Add device error:";
+                }
+                else {
+                    // TODO: Write device login
+                    // TODO: broadcast device login
+                    // TODO: Query last error of device and send back
+                }
+
             }
             break;
         case DP_LOST:
-            // Record & broadcast device lost
-            // Write device lost
+            pSess->delDevice(pInfo->dID_);
+            // TODO: broadcast device LOST
+            // TODO: Write device lost
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
                 pSess->sendDevAck(pInfo);
             }
             break;
         case DP_ERRHIS:
-            //
+            {
+                DevErrHis *pErr = (DevErrHis *)pInfo->con_;
+                pSRedis_->errHist(pInfo->dID_, pErr);
+            }
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
                 pSess->sendDevAck(pInfo);
             }
             break;
         case DP_ERRHISF:
-
+            {
+                DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
+                pSRedis_->errHistF(pInfo->dID_, pErr);
+            }
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
                 pSess->sendDevAck(pInfo);
