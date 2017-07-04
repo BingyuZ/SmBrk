@@ -13,6 +13,8 @@ using namespace hiredis;
 extern void PrintId(const uint8_t *p, char *tt);
 static const char hexStr[] = "0123456789abcdef";
 
+const int gMaxRecord = 119;
+
 void formatET(char *t, const uint8_t *eT)
 {
     *t++ = '2';
@@ -94,16 +96,6 @@ int redisStore::aSet(const muduo::string &cmd)
   return 0;
 }
 
-void redisStore::agentLogin(uint32_t aid)
-{
-    // FIXME: Memory leakage???
-    char buf[30], s[100];
-    FormatZStr(buf, NULL, false, true);
-    sprintf(s, "lpush agtLogin:%08x IN20%sZ", aid, buf);
-    LOG_DEBUG << "Redis command: " << s;
-    aSet(s);
-}
-
 static void formatGPRS(char *buf, const GPRSInfo* pGprs)
 {
     int i;
@@ -135,23 +127,59 @@ void redisStore::agentLogin(uint32_t aid, const GPRSInfo* pGprs)
     char buf[30], buf1[100], s[200];
     FormatZStr(buf, NULL, false, true);
     formatGPRS(buf1, pGprs);
-    sprintf(s, "lpush agtLogin:%08x IN20%sZ%s", aid, buf, buf1);
+    sprintf(s, "lpush agtLog:%08x 20%sZ$IN%s", aid, buf, buf1);
     LOG_DEBUG << "Redis command: " << s;
     aSet(s);
 }
+
+void redisStore::agentLogin(uint32_t aid)
+{
+    // FIXME: Memory leakage???
+    char buf[30], s[100];
+    FormatZStr(buf, NULL, false, true);
+    sprintf(s, "lpush agtLog:%08x 20%sZ$IN", aid, buf);
+    LOG_DEBUG << "Redis command: " << s;
+    aSet(s);
+}
+
+void redisStore::devLogin(const uint8_t *dId, uint32_t aid, uint8_t modId)
+{
+    char Sid[20], buf[30], s[100];
+
+    PrintId(dId, Sid);
+    FormatZStr(buf, NULL, false, false);
+
+    sprintf(s, "lpush devLog:%s 20%s$IN$%08x%d",
+                Sid, buf, aid, modId);
+    LOG_DEBUG << "Redis command: " << s;
+//    aSet(s);
+}
+
+void redisStore::devLogout(const uint8_t *dId)
+{
+    char Sid[20], buf[30], s[100];
+
+    PrintId(dId, Sid);
+    FormatZStr(buf, NULL, false, false);
+
+    sprintf(s, "lpush devLog:%s 20%s$ON", Sid, buf);
+    LOG_DEBUG << "Redis command: " << s;
+//    aSet(s);
+}
+
 
 void redisStore::errHist(const uint8_t *dId, const struct DevErrHis *err)
 {
     char Sid[20], t[20], s[100];
     uint16_t dur = err->duration_[0]*256 + err->duration_[1];
 
-    PrintId(dId, s);
+    PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lpush devErr:%s %02X%s$%6.2f",
-                Sid, err->lastReason_, t, dur/100.0);
+    sprintf(s, "lpush devErr:%s %s$%02X$%.2f",
+                Sid, t, err->lastReason_, dur/100.0);
     LOG_DEBUG << "Redis command: " << s;
-    aSet(s);
+//    aSet(s);
 }
 
 void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
@@ -159,16 +187,56 @@ void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
     char Sid[20], t[20], s[200];
     uint16_t dur = err->duration_[0]*256 + err->duration_[1];
 
-    PrintId(dId, s);
+    PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lpush devErr:%s %02X%s$%6.2f$d%d$%d$%d$%d",
-                Sid, err->lastReason_, t, dur/100.0,
+    sprintf(s, "lpush devErr:%s %s$%02X$%.2f$d%d$%d$%d$%d",
+                Sid, t, err->lastReason_, dur/100.0,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
                 err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
     LOG_DEBUG << "Redis command: " << s;
-    aSet(s);
+//    aSet(s);
 }
+
+void redisStore::errMHistF(const uint8_t *dId, const struct DevErrHisF *err)
+{
+    char Sid[20], t[20], s[200];
+    uint16_t dur = err->duration_[0]*256 + err->duration_[1];
+
+    PrintId(dId, Sid);
+    formatET(t, err->time_);
+
+    sprintf(s, "lset devErr:%s %s$%02X$%.2f$d%d$%d$%d$%d",
+                Sid, t, err->lastReason_, dur/100.0,
+                err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
+                err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
+    LOG_DEBUG << "Redis command: " << s;
+//    aSet(s);
+}
+
+void redisStore::dataRpt(const uint8_t *dId, const uint8_t *data, uint8_t ver, uint8_t status, int len)
+{
+    char Sid[20], buf[20], s[200], *s1=s;
+    int i;
+
+    PrintId(dId, Sid);
+    FormatZStr(buf, NULL, false, false);
+
+    sprintf(s, "lpush devData:%s %s$%02X$%02X", Sid, buf, status, ver);
+    while (*s1) ++s1;
+
+    for (i=0; i<len-4; i++){
+        *s1++ = hexStr[data[i] / 16];
+        *s1++ = hexStr[data[i] % 16];
+    }
+    *s1 = 0;
+
+    // TODO: Add restrict
+    LOG_DEBUG << "Redis command: " << s;
+
+//    aSet(s);
+}
+
 
 #if 0
 void redisStore::setPair(const muduo::StringPiece &key, const muduo::StringPiece &value)

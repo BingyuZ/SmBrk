@@ -22,6 +22,7 @@ enum DevPkType {
 
     DP_DATAUP = 0x20,
     DP_DATAUPF = 0x21,
+    DP_DATAUPG = 0x22,
 
     DP_DATAACK = 0xa0,
 
@@ -56,25 +57,25 @@ struct DevErrHisF {
     uint8_t  rev_;
     uint8_t  duration_[2];
     uint8_t  time_[6];
-    uint16_t rev2_;
     uint8_t  curr_[8];
+    uint16_t rev2_;
 };
 
 struct DevData {
     uint8_t  ver_;
     uint8_t  status_;
-    uint16_t rawData_[0];
+    uint8_t  rawData_[0];
 };
 
 struct DevDatawF {
-    uint8_t  ver_;
-    uint8_t  status_;
     uint8_t  lastReason_;
     uint8_t  rev_;
-    uint16_t duration_;
+    uint8_t  duration_[2];
     uint8_t  time_[12];
-    uint16_t curr_[4];
-    uint16_t rawData_[0];
+    uint8_t  curr_[8];
+    uint8_t  ver_;
+    uint8_t  status_;
+    uint8_t  rawData_[0];
 };
 
 

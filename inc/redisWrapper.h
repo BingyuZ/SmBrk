@@ -27,8 +27,14 @@ class redisStore : public boost::enable_shared_from_this<redisStore>,
 
   void agentLogin(uint32_t);
   void agentLogin(uint32_t, const GPRSInfo*);
+  void devLogin(const uint8_t *, uint32_t, uint8_t);
+  void devLogout(const uint8_t *);
   void errHist(const uint8_t *, const struct DevErrHis *);
   void errHistF(const uint8_t *, const struct DevErrHisF *);
+  void errMHist(const uint8_t *, const struct DevErrHisF *);
+
+  void dataRpt(const uint8_t *, const uint8_t *,
+               uint8_t ver, uint8_t status,  int);
 
   //void setPair(const muduo::StringPiece &key, const muduo::StringPiece &value);
   //void genSet(const muduo::StringPiece &cmd);

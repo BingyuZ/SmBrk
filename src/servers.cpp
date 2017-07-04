@@ -118,6 +118,9 @@ void Session::delDevice(const uint8_t *dId)
             return;
         }
     }
+    char s[20];
+    PrintId(dId, s);
+    LOG_DEBUG << "Cannot find " << s << " when deleting device";
 }
 
 void Session::sendDevAck(DevInfoHeader *pInfo)
@@ -354,7 +357,8 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                     LOG_DEBUG << "Add device error:";
                 }
                 else {
-                    // TODO: Write device login
+                    // Write device login
+                    pSRedis_->devLogin(pInfo->dID_, dId, pDev->modId_);
                     // TODO: broadcast device login
                     // TODO: Query last error of device and send back
                 }
@@ -363,8 +367,8 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
             break;
         case DP_LOST:
             pSess->delDevice(pInfo->dID_);
+            pSRedis_->devLogout(pInfo->dID_);
             // TODO: broadcast device LOST
-            // TODO: Write device lost
             if (ts.count(dId) == 0) {
                 ts.insert(dId);
                 pSess->sendDevAck(pInfo);
@@ -390,7 +394,8 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                 pSess->sendDevAck(pInfo);
             }
             break;
-        default: break;
+        default:
+            break;
         }
     }
 }
@@ -399,8 +404,39 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
 {
+    uint16_t pos = 0;
+    uint64_t dId;
 
+    while (pos + 4 < (uint16_t)message.length()) {
+        DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + pos);
+        PrintId(pInfo->dID_, Sid);
 
+        LOG_DEBUG << "Pos:" << pos << " Type:" << pInfo->type_
+                  << " Len:" << pInfo->len_ << " ID:" << Sid;
+        pos += pInfo->len_;
+        if (pos > message.length()) break;
+        dId = Get64FromDevInfo(pInfo);
+
+        if (pInfo->type_ == DP_DATAUP || pInfo->type_ == DP_DATAUPF
+            || pInfo->type_ == DP_DATAUPG)
+        {
+            DevData *pDev = (DevData *)pInfo->con_;
+            pSRedis_->dataRpt(pInfo->dID_, pDev->rawData_,
+                              pDev->ver_, pDev->status_,
+                              pInfo->len_ - sizeof(DevInfoHeader));
+            // TODO: Broadcast device data
+        }
+
+        if (pInfo->type_ == DP_DATAUPF) {
+            DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
+            pSRedis_->errHistF(pInfo->dID_, pErr);
+        }
+        if (pInfo->type_ == DP_DATAUPG) {
+            DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
+            pSRedis_->errMHist(pInfo->dID_, pErr);
+        }
+
+    }
 }
 
 void AgtServer::onBlockMessage( const TcpConnectionPtr& conn,
