@@ -73,6 +73,7 @@ struct DevDatawF {
     uint8_t  duration_[2];
     uint8_t  time_[12];
     uint8_t  curr_[8];
+    uint16_t rev2_;
     uint8_t  ver_;
     uint8_t  status_;
     uint8_t  rawData_[0];

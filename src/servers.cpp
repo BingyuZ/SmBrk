@@ -135,6 +135,18 @@ void Session::sendDevAck(DevInfoHeader *pInfo)
     sendPacket(CAS_DEVANS, &head, head.len_);
 }
 
+void Session::sendDataAck(DevInfoHeader *pInfo)
+{
+    DevInfoHeader head;
+
+    head.type_ = DP_DATAACK;
+    //head.devType_ = pInfo->devType_;
+    memcpy(head.dID_, pInfo->dID_, 6);
+    head.len_ = sizeof(head);
+
+    sendPacket(CAS_DACK, &head, head.len_);
+}
+
 void Session::sendLogRes(const char *pC1)
 {
     uint32_t pwd[4];
@@ -358,9 +370,9 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                 }
                 else {
                     // Write device login
-                    pSRedis_->devLogin(pInfo->dID_, dId, pDev->modId_);
+                    pSRedis_->devLogin(pInfo->dID_, pSess->agentId_, pDev->modId_);
                     // TODO: broadcast device login
-                    // TODO: Query last error of device and send back
+                    pQRedis_->checkLastErr(pSess, pInfo->dID_);
                 }
 
             }
@@ -395,6 +407,8 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
             }
             break;
         default:
+            LOG_WARN << "Unknown Dev subcommand : " << pInfo->type_;
+            // TODO: Send Error
             break;
         }
     }
@@ -405,9 +419,9 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
                           const muduo::string& message)
 {
     uint16_t pos = 0;
-    uint64_t dId;
 
     while (pos + 4 < (uint16_t)message.length()) {
+        char Sid[20];
         DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + pos);
         PrintId(pInfo->dID_, Sid);
 
@@ -415,27 +429,34 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
                   << " Len:" << pInfo->len_ << " ID:" << Sid;
         pos += pInfo->len_;
         if (pos > message.length()) break;
-        dId = Get64FromDevInfo(pInfo);
-
-        if (pInfo->type_ == DP_DATAUP || pInfo->type_ == DP_DATAUPF
-            || pInfo->type_ == DP_DATAUPG)
-        {
-            DevData *pDev = (DevData *)pInfo->con_;
-            pSRedis_->dataRpt(pInfo->dID_, pDev->rawData_,
-                              pDev->ver_, pDev->status_,
-                              pInfo->len_ - sizeof(DevInfoHeader));
-            // TODO: Broadcast device data
-        }
 
         if (pInfo->type_ == DP_DATAUPF) {
             DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
             pSRedis_->errHistF(pInfo->dID_, pErr);
         }
-        if (pInfo->type_ == DP_DATAUPG) {
+        else if (pInfo->type_ == DP_DATAUPG) {
             DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
-            pSRedis_->errMHist(pInfo->dID_, pErr);
+            pSRedis_->errRHist(pInfo->dID_, pErr);
         }
 
+        if (pInfo->type_ == DP_DATAUP || pInfo->type_ == DP_DATAUPF
+            || pInfo->type_ == DP_DATAUPG)
+        {
+            DevData *pDev;
+            if (pInfo->type_ == DP_DATAUP) pDev = (DevData *)pInfo->con_;
+            else pDev = (DevData *)&pInfo->con_[sizeof(DevErrHisF)];
+
+            int len = pInfo->len_ - sizeof(DevInfoHeader) - 2;
+            if (pInfo->type_ != DP_DATAUP)
+                len -= sizeof(DevErrHisF);
+
+            pSRedis_->dataRpt(pInfo->dID_, pDev, len);
+            pSess->sendDataAck(pInfo);
+        }
+        else {
+            LOG_WARN << "Unknown Dev subcommand : " << pInfo->type_;
+            // TODO: Send Error
+        }
     }
 }
 

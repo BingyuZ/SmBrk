@@ -192,6 +192,7 @@ public:
 	void delDevice(const uint8_t *);
 
 	void sendDevAck(struct DevInfoHeader *);
+	void sendDataAck(struct DevInfoHeader *);
 	void sendLogRes(const char *);
 
 	uint64_t getEnc(uint64_t salt)

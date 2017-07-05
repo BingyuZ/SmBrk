@@ -6,6 +6,8 @@
 #include <string>
 #include "commons.h"
 
+#define WRITEREDISLOG
+
 using namespace muduo;
 using namespace muduo::net;
 using namespace hiredis;
@@ -149,10 +151,13 @@ void redisStore::devLogin(const uint8_t *dId, uint32_t aid, uint8_t modId)
     PrintId(dId, Sid);
     FormatZStr(buf, NULL, false, false);
 
-    sprintf(s, "lpush devLog:%s 20%s$IN$%08x%d",
+    sprintf(s, "lpush devLog:%s 20%s$IN$%08x$%d",
                 Sid, buf, aid, modId);
     LOG_DEBUG << "Redis command: " << s;
-//    aSet(s);
+
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
 }
 
 void redisStore::devLogout(const uint8_t *dId)
@@ -164,7 +169,9 @@ void redisStore::devLogout(const uint8_t *dId)
 
     sprintf(s, "lpush devLog:%s 20%s$ON", Sid, buf);
     LOG_DEBUG << "Redis command: " << s;
-//    aSet(s);
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
 }
 
 
@@ -179,7 +186,9 @@ void redisStore::errHist(const uint8_t *dId, const struct DevErrHis *err)
     sprintf(s, "lpush devErr:%s %s$%02X$%.2f",
                 Sid, t, err->lastReason_, dur/100.0);
     LOG_DEBUG << "Redis command: " << s;
-//    aSet(s);
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
 }
 
 void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
@@ -193,12 +202,14 @@ void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
     sprintf(s, "lpush devErr:%s %s$%02X$%.2f$d%d$%d$%d$%d",
                 Sid, t, err->lastReason_, dur/100.0,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
-                err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
+                err->curr_[4]*256+err->curr_[5], err->curr_[6]*256+err->curr_[7]);
     LOG_DEBUG << "Redis command: " << s;
-//    aSet(s);
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
 }
 
-void redisStore::errMHistF(const uint8_t *dId, const struct DevErrHisF *err)
+void redisStore::errRHist(const uint8_t *dId, const struct DevErrHisF *err)
 {
     char Sid[20], t[20], s[200];
     uint16_t dur = err->duration_[0]*256 + err->duration_[1];
@@ -206,37 +217,72 @@ void redisStore::errMHistF(const uint8_t *dId, const struct DevErrHisF *err)
     PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lset devErr:%s %s$%02X$%.2f$d%d$%d$%d$%d",
+    sprintf(s, "lset devErr:%s 0 %s$%02X$%.2f$d%d$%d$%d$%d",
                 Sid, t, err->lastReason_, dur/100.0,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
                 err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
     LOG_DEBUG << "Redis command: " << s;
-//    aSet(s);
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
 }
 
-void redisStore::dataRpt(const uint8_t *dId, const uint8_t *data, uint8_t ver, uint8_t status, int len)
+void redisStore::dataRpt(const uint8_t *dId, const DevData *pDev, int len)
 {
-    char Sid[20], buf[20], s[200], *s1=s;
+    char Sid[20], buf[20], s[200], s2[50];
     int i;
 
     PrintId(dId, Sid);
     FormatZStr(buf, NULL, false, false);
 
-    sprintf(s, "lpush devData:%s %s$%02X$%02X", Sid, buf, status, ver);
+    sprintf(s, "lpush devData:%s %s$%02X$%02X", Sid, buf, pDev->status_, pDev->ver_);
+    char *s1 = s;
     while (*s1) ++s1;
 
-    for (i=0; i<len-4; i++){
-        *s1++ = hexStr[data[i] / 16];
-        *s1++ = hexStr[data[i] % 16];
+    for (i=0; i<len; i++){
+        *s1++ = hexStr[pDev->rawData_[i] / 16];
+        *s1++ = hexStr[pDev->rawData_[i] % 16];
     }
     *s1 = 0;
 
-    // TODO: Add restrict
-    LOG_DEBUG << "Redis command: " << s;
+    // Add restrict
+    sprintf(s2, "ltrim devData:%s 0 %d", Sid, gMaxRecord-1);
+    LOG_DEBUG << "Redis command: " << s2;
+    #ifdef WRITEREDISLOG
+    aSet(s2);
+    #endif
 
-//    aSet(s);
+    // Save date
+    LOG_DEBUG << "Redis command: " << s;
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
 }
 
+void DevErrCB(hiredis::Hiredis* c, redisReply* reply, Session * pSess)
+{
+    redisReply*item;
+    if (reply->type != 2) {
+        LOG_DEBUG << "Error while query lrange devErr";
+    }
+    else if (reply->element == 0) {
+        LOG_DEBUG << "Cannot find devErr record";
+            // TODO: No such record
+    }
+    else {
+        item = reply->element[0];
+        LOG_INFO << string(item->str, item->len);
+        // TODO: reply
+    }
+}
+
+void redisQuery::checkLastErr(Session * pSess, const uint8_t * dId)
+{
+    char Sid[20];
+
+    PrintId(dId, Sid);
+    hRedis_.command(boost::bind(DevErrCB, _1, _2, pSess), "lrange devErr:%s 0 0", Sid);
+}
 
 #if 0
 void redisStore::setPair(const muduo::StringPiece &key, const muduo::StringPiece &value)
