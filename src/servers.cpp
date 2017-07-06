@@ -7,7 +7,7 @@
 #include <memory.h>
 #include <sys/time.h>
 
-
+#include "colors.h"
 
 #if 0
 AgtServer::AgtServer()
@@ -128,8 +128,32 @@ void Session::sendDevAck(DevInfoHeader *pInfo)
     DevInfoHeader head;
 
     head.type_ = DP_ACK;
-    //head.devType_ = pInfo->devType_;
     memcpy(head.dID_, pInfo->dID_, 6);
+    head.len_ = sizeof(head);
+
+    sendPacket(CAS_DEVANS, &head, head.len_);
+}
+
+void Session::sendDevHis(const uint8_t *dId, const DevErrHis *pHist)
+{
+    uint8_t buf[sizeof(DevInfoHeader) + sizeof(DevErrHis)+4];
+    DevInfoHeader *pHead = (DevInfoHeader *)buf;
+
+    pHead->type_ = DP_LASTHIS;
+    memcpy(pHead->dID_, dId, 6);
+    pHead->len_ = sizeof(DevInfoHeader) + sizeof(DevErrHis);
+
+    memcpy(pHead->con_, pHist, sizeof(DevErrHis));
+
+    sendPacket(CAS_DEVANS, pHead, pHead->len_+4);
+}
+
+void Session::sendDevHisN(const uint8_t *dId)
+{
+    DevInfoHeader head;
+
+    head.type_ = DP_LASTNAK;
+    memcpy(head.dID_, dId, 6);
     head.len_ = sizeof(head);
 
     sendPacket(CAS_DEVANS, &head, head.len_);
@@ -272,7 +296,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		    }
 		    pC1 += 2;
             buf->retrieve(kHeaderLen);  // 4
-		    LOG_DEBUG << "Packet received, len=" << len << ", Type: " << 0L+*pC1;
+		    LOG_DEBUG << ZEC_CYAN << "Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
 
             assert(!conn->getContext().empty());
             Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
@@ -354,8 +378,8 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
 
         PrintId(pInfo->dID_, Sid);
 
-        LOG_DEBUG << "Pos:" << pos << " Type:" << pInfo->type_
-                  << " Len:" << pInfo->len_ << " ID:" << Sid;
+        LOG_DEBUG << ZEC_GREEN << "Pos:" << pos << " Type:" << pInfo->type_
+                  << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
         pos += pInfo->len_;
         if (pos > message.length()) break;
         dId = Get64FromDevInfo(pInfo);
@@ -372,6 +396,7 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
                     // Write device login
                     pSRedis_->devLogin(pInfo->dID_, pSess->agentId_, pDev->modId_);
                     // TODO: broadcast device login
+
                     pQRedis_->checkLastErr(pSess, pInfo->dID_);
                 }
 
@@ -425,8 +450,8 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
         DevInfoHeader *pInfo = (DevInfoHeader *)(message.data() + pos);
         PrintId(pInfo->dID_, Sid);
 
-        LOG_DEBUG << "Pos:" << pos << " Type:" << pInfo->type_
-                  << " Len:" << pInfo->len_ << " ID:" << Sid;
+        LOG_DEBUG << ZEC_GREEN << "Pos:" << pos << " Type:" << pInfo->type_
+                  << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
         pos += pInfo->len_;
         if (pos > message.length()) break;
 

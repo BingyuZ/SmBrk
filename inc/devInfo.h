@@ -18,6 +18,9 @@ enum DevPkType {
     DP_ERRHISF = 0x15,
 
     DP_ACK = 0x80,
+    DP_LASTHIS = 0x81,
+    DP_LASTNAK = 0x82,
+
     DP_LERROR = 0x90,
 
     DP_DATAUP = 0x20,
@@ -46,7 +49,7 @@ struct DevBasic {
 
 struct DevErrHis {
     uint8_t  lastReason_;
-    uint8_t  rev_;
+    uint8_t  modId_;
     uint8_t  duration_[2];
     uint8_t  time_[6];
     uint16_t rev2_;
@@ -54,7 +57,7 @@ struct DevErrHis {
 
 struct DevErrHisF {
     uint8_t  lastReason_;
-    uint8_t  rev_;
+    uint8_t  modId_;
     uint8_t  duration_[2];
     uint8_t  time_[6];
     uint8_t  curr_[8];
@@ -69,7 +72,7 @@ struct DevData {
 
 struct DevDatawF {
     uint8_t  lastReason_;
-    uint8_t  rev_;
+    uint8_t  modId_;
     uint8_t  duration_[2];
     uint8_t  time_[12];
     uint8_t  curr_[8];

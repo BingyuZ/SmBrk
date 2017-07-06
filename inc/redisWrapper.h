@@ -1,10 +1,14 @@
 #ifndef ZE_REDIS_WRAPPER_H
 #define ZE_REDIS_WRAPPER_H
 
-#include "devInfo.h"
+//#include "devInfo.h"
 #include "Hiredis.h"
 
-extern class Session;
+class Session;
+struct GPRSInfo;
+struct DevErrHis;
+struct DevErrHisF;
+struct DevData;
 
 namespace hiredis
 {

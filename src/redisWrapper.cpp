@@ -1,10 +1,15 @@
+#include "servers.h"
 #include "redisWrapper.h"
+#include "commons.h"
+
+#include "colors.h"
 
 #include <muduo/base/Logging.h>
 #include <muduo/net/EventLoop.h>
 
+#include <memory.h>
 #include <string>
-#include "commons.h"
+
 
 #define WRITEREDISLOG
 
@@ -16,6 +21,21 @@ extern void PrintId(const uint8_t *p, char *tt);
 static const char hexStr[] = "0123456789abcdef";
 
 const int gMaxRecord = 119;
+
+
+class SessID {
+public:
+    SessID(Session *pSess, const uint8_t *dId) : pSess_(pSess)
+    {
+        memcpy(Id_, dId, 6);
+    }
+
+    ~SessID() {}
+
+    Session * pSess_;
+    uint8_t Id_[6];
+};
+
 
 void formatET(char *t, const uint8_t *eT)
 {
@@ -73,7 +93,7 @@ string redisReplyToString(const redisReply* reply)
 
 void setCallback(Hiredis* c, redisReply* reply)
 {
-    LOG_DEBUG << "SetCmd " << redisReplyToString(reply);
+    LOG_DEBUG << "SetCmd " << ZEC_BLUE << redisReplyToString(reply) << ZEC_RESET;
 }
 
 void redisStore::connect(void)
@@ -130,7 +150,7 @@ void redisStore::agentLogin(uint32_t aid, const GPRSInfo* pGprs)
     FormatZStr(buf, NULL, false, true);
     formatGPRS(buf1, pGprs);
     sprintf(s, "lpush agtLog:%08x 20%sZ$IN%s", aid, buf, buf1);
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     aSet(s);
 }
 
@@ -140,7 +160,7 @@ void redisStore::agentLogin(uint32_t aid)
     char buf[30], s[100];
     FormatZStr(buf, NULL, false, true);
     sprintf(s, "lpush agtLog:%08x 20%sZ$IN", aid, buf);
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     aSet(s);
 }
 
@@ -151,9 +171,9 @@ void redisStore::devLogin(const uint8_t *dId, uint32_t aid, uint8_t modId)
     PrintId(dId, Sid);
     FormatZStr(buf, NULL, false, false);
 
-    sprintf(s, "lpush devLog:%s 20%s$IN$%08x$%d",
+    sprintf(s, "lpush devLog:%s 20%s$IN$%08x$%02X",
                 Sid, buf, aid, modId);
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
 
     #ifdef WRITEREDISLOG
     aSet(s);
@@ -168,7 +188,7 @@ void redisStore::devLogout(const uint8_t *dId)
     FormatZStr(buf, NULL, false, false);
 
     sprintf(s, "lpush devLog:%s 20%s$ON", Sid, buf);
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s);
     #endif
@@ -183,9 +203,9 @@ void redisStore::errHist(const uint8_t *dId, const struct DevErrHis *err)
     PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lpush devErr:%s %s$%02X$%.2f",
-                Sid, t, err->lastReason_, dur/100.0);
-    LOG_DEBUG << "Redis command: " << s;
+    sprintf(s, "lpush devErr:%s %s$%02X$%d$%02X",
+                Sid, t, err->lastReason_, dur, err->modId_);
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s);
     #endif
@@ -199,11 +219,11 @@ void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
     PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lpush devErr:%s %s$%02X$%.2f$d%d$%d$%d$%d",
-                Sid, t, err->lastReason_, dur/100.0,
+    sprintf(s, "lpush devErr:%s %s$%02X$%d$%02X$d%d$%d$%d$%d",
+                Sid, t, err->lastReason_, dur, err->modId_,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
                 err->curr_[4]*256+err->curr_[5], err->curr_[6]*256+err->curr_[7]);
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s);
     #endif
@@ -217,11 +237,11 @@ void redisStore::errRHist(const uint8_t *dId, const struct DevErrHisF *err)
     PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lset devErr:%s 0 %s$%02X$%.2f$d%d$%d$%d$%d",
-                Sid, t, err->lastReason_, dur/100.0,
+    sprintf(s, "lset devErr:%s 0 %s$%02X$%d$%02X$d%d$%d$%d$%d",
+                Sid, t, err->lastReason_, dur, err->modId_,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
                 err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s);
     #endif
@@ -247,41 +267,77 @@ void redisStore::dataRpt(const uint8_t *dId, const DevData *pDev, int len)
 
     // Add restrict
     sprintf(s2, "ltrim devData:%s 0 %d", Sid, gMaxRecord-1);
-    LOG_DEBUG << "Redis command: " << s2;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s2 << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s2);
     #endif
 
     // Save date
-    LOG_DEBUG << "Redis command: " << s;
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s);
     #endif
 }
 
-void DevErrCB(hiredis::Hiredis* c, redisReply* reply, Session * pSess)
+bool FillHist(DevErrHis *pHist, const char *ps, uint32_t len)
+{
+    int y,mo,d,h,m,s;
+    if (len < 19 || ps[14] != '$' || ps[17] != '$' ) return false;
+    sscanf(ps, "20%2d%2d%2d%2d%2d%2d", &y, &mo, &d, &h, &m, &s);
+    pHist->time_[0] = y;
+    pHist->time_[1] = mo;
+    pHist->time_[2] = d;
+    pHist->time_[3] = h;
+    pHist->time_[4] = m;
+    pHist->time_[5] = s;
+    //LOG_DEBUG << "Hist time:" << y<< mo << d << h << m << s;
+    s = 0;
+    sscanf(ps+15, "%d$%d$%d", &h, &m, &s);
+    if (s == 0) return false;
+    pHist->lastReason_ = h;
+    pHist->duration_[0] = m/256;
+    pHist->duration_[1] = m%256;
+    pHist->modId_ = s;
+    //LOG_DEBUG << h << m << s;
+    return true;
+}
+
+void DevErrCB(hiredis::Hiredis* c, redisReply* reply, SessID * pSID)
 {
     redisReply*item;
+
     if (reply->type != 2) {
         LOG_DEBUG << "Error while query lrange devErr";
     }
     else if (reply->element == 0) {
         LOG_DEBUG << "Cannot find devErr record";
-            // TODO: No such record
+        pSID->pSess_->sendDevHisN(pSID->Id_);
     }
     else {
         item = reply->element[0];
-        LOG_INFO << string(item->str, item->len);
-        // TODO: reply
+
+        char Sid[20];
+        PrintId(pSID->Id_, Sid);
+        LOG_DEBUG << Sid << " LR: "
+                  << string(item->str, item->len);
+
+        DevErrHis hist;
+        bool ret = FillHist(&hist, item->str, item->len);
+        if (ret) pSID->pSess_->sendDevHis(pSID->Id_, &hist);
+        else pSID->pSess_->sendDevHisN(pSID->Id_);
     }
+
+    delete pSID;
 }
 
 void redisQuery::checkLastErr(Session * pSess, const uint8_t * dId)
 {
     char Sid[20];
 
+    SessID *pSID = new SessID(pSess, dId);
+
     PrintId(dId, Sid);
-    hRedis_.command(boost::bind(DevErrCB, _1, _2, pSess), "lrange devErr:%s 0 0", Sid);
+    hRedis_.command(boost::bind(DevErrCB, _1, _2, pSID), "lrange devErr:%s 0 0", Sid);
 }
 
 #if 0

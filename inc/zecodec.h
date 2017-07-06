@@ -192,6 +192,9 @@ public:
 	void delDevice(const uint8_t *);
 
 	void sendDevAck(struct DevInfoHeader *);
+	void sendDevHis(const uint8_t *, const struct DevErrHis *);
+	void sendDevHisN(const uint8_t *);
+
 	void sendDataAck(struct DevInfoHeader *);
 	void sendLogRes(const char *);
 
