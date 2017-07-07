@@ -67,13 +67,8 @@ struct PacketHeader {
     uint8_t     ver_;
     uint8_t     rev_;   // Used as encryption
 
-    union {
-        struct {
-            uint32_t    saltHi_;
-            uint32_t    saltLo_;
-        };
-        uint64_t    salt_;
-    };
+    uint32_t    saltHi_;
+    uint32_t    saltLo_;
 
 //    uint32_t    body_[0];
     uint8_t      body_[0];
@@ -209,7 +204,8 @@ public:
         const struct PacketHeader *pH = (const struct PacketHeader *)src;
         if (pH->ver_ != ZE_VER || pH->rev_ != AU_ENCRY) return false;
 
-	    uint64_t    salt = pH->salt_;
+	    uint64_t    salt = pH->saltHi_;
+	    salt = (salt << 32) | pH->saltLo_;
 
 	    msg->reserve(length);
 	    src += 12;
