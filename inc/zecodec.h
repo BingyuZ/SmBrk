@@ -121,8 +121,9 @@ public:
 
 	    // TODO: Check the password here
 
-	    const uint32_t ul = *reinterpret_cast<const uint32_t *>(pPack->body_);
-	    agentId_ = muduo::net::sockets::networkToHost32(ul);
+        agentId_ = pPack->body_[0] * 256 + pPack->body_[1];
+        agentId_ *= 65536;
+        agentId_ |= (pPack->body_[2] * 256 + pPack->body_[3]);
 	    stage_ = SC_PASSED;
 
         return true;

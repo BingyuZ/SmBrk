@@ -80,6 +80,7 @@ static int GetGPRSInfo(GPRSInfo *pInfo, const muduo::string&msg)
     int type = pHeader->body_[4]*256 + pHeader->body_[5];
     unsigned length = pHeader->body_[6]*256 + pHeader->body_[7];
 
+    LOG_DEBUG << "MsgLength: " << msg.length() << " Len:" << length;
     if (msg.length() < length + 0x10) return -1;
     if (type != 1) return -2;
 
