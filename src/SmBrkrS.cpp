@@ -69,9 +69,13 @@ void SBSMain(void)
 	hiredis::redisStore sRedis(tQuery.startLoop(), InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
     sRedis.connect();
 
+    HookServer hookSvr(&loop, InetAddress(static_cast<uint16_t>(gConf.hookPort_)),
+                       gConf.hookCmax_, "TCPHook");
+    hookSvr.start();
+
 	// Start Agent Listener
     AgtServer agtServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
-                      gConf.agtCmax_, "AgentServer", &sRedis, &qRedis);
+                      gConf.agtCmax_, "AgentServer", &sRedis, &qRedis, &hookSvr);
     agtServer.start();
 
 	// Add inspector entrance

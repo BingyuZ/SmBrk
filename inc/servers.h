@@ -21,15 +21,19 @@ class redisStore;
 class redisQuery;
 }
 
+class HookServer;
+
 class AgtServer
 {
 public:
 	AgtServer(EventLoop* loop, const InetAddress& listenAddr,
               int maxConn, const muduo::string& svrName,
-              hiredis::redisStore *pSRedis, hiredis::redisQuery *pQRedis)
+              hiredis::redisStore *pSRedis, hiredis::redisQuery *pQRedis,
+              HookServer *pHook
+              )
             : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
 			  server_(loop, listenAddr, svrName),
-			  pSRedis_(pSRedis), pQRedis_(pQRedis)
+			  pSRedis_(pSRedis), pQRedis_(pQRedis), pHook_(pHook)
 //			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
 	{
 		server_.setConnectionCallback(boost::bind(&AgtServer::onConnection, this, _1));
@@ -76,6 +80,7 @@ protected:
     TcpServer 		server_;
     hiredis::redisStore *pSRedis_;
     hiredis::redisQuery *pQRedis_;
+    HookServer      *pHook_;
 
 //	MLengthHeaderCodec codec_;
 	MutexLock 		mutex_;
@@ -85,5 +90,45 @@ private:
 	const static size_t kHeaderLen = sizeof(int32_t);
 };
 
+
+class HookServer
+{
+public:
+	HookServer(EventLoop* loop, const InetAddress& listenAddr,
+              int maxConn, const muduo::string& svrName)
+            : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
+			  server_(loop, listenAddr, svrName)
+	{
+		server_.setConnectionCallback(boost::bind(&HookServer::onConnection, this, _1));
+		server_.setMessageCallback(
+//                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
+                  boost::bind(&HookServer::onMessage, this, _1, _2, _3));
+	}
+
+	void start()
+	{
+		server_.start();
+	}
+
+    virtual ~HookServer() {}
+
+    void broadcast();   // Test
+    void broadcast(const uint8_t *dId, DevData *pDev, unsigned len);
+
+protected:
+    void onConnection(const TcpConnectionPtr& conn);
+
+    void onMessage(const TcpConnectionPtr& conn, Buffer* buf, Timestamp);
+
+	typedef std::set<TcpConnectionPtr> ConnectionList;
+	ConnectionList	connections_;
+
+	EventLoop* 		loop_;
+	int				kMaxConn_;
+	int				numConnected_;
+
+    TcpServer 		server_;
+   	MutexLock 		mutex_;
+};
 
 #endif // AGTSERVER_H

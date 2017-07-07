@@ -90,7 +90,7 @@ bool GConf::SetPara(ReadConf &r, string &reason)
 	if (r.GetValue("HOOKPORT", v)) hookPort_ = atoi(v.c_str()); else hookPort_ = 6569;
 	if (hookPort_ <= 0 || hookPort_> 32000)	{ reason = "HOOKPORT wrong.";	return false;	}
 	if (r.GetValue("HOOKMAX", v)) hookCmax_ = atoi(v.c_str()); else hookCmax_ = 2;
-	if (hookCmax_ <= 0 || hookCmax_> 3)	{ reason = "HOOKMAX wrong.";	return false;	}
+	if (hookCmax_ <= 0 || hookCmax_> 6)	{ reason = "HOOKMAX wrong.";	return false;	}
 
 	if (r.GetValue("MONPORT", v)) monPort_ = atoi(v.c_str()); else hookPort_ = 6688;
 	if (hookPort_ <= 0 || hookPort_> 32000)	{ reason = "MONPORT wrong.";	return false;	}

@@ -477,6 +477,7 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
 
             pSRedis_->dataRpt(pInfo->dID_, pDev, len);
             pSess->sendDataAck(pInfo);
+            pHook_->broadcast(pInfo->dID_, pDev, len+2);
         }
         else {
             LOG_WARN << "Unknown Dev subcommand : " << pInfo->type_;
@@ -585,7 +586,75 @@ void AgtServer::onBlockMessage( const TcpConnectionPtr& conn,
 #endif
 }
 
+void HookServer::onConnection(const TcpConnectionPtr& conn)
+{
+	LOG_INFO << "Hook: " << conn->localAddress().toIpPort() << " -> "
+			 << conn->peerAddress().toIpPort() << " is "
+			 << (conn->connected() ? "UP" : "DOWN");
 
+	if (conn->connected())
+    {
+		if (numConnected_ > kMaxConn_)	// Exceed connection limit
+		{
+			conn->shutdown();
+			LOG_WARN << "Exceeds maximum connection";
+			return;
+		}
+        conn->setTcpNoDelay(false);
+
+        MutexLockGuard lock(mutex_);
+        ++numConnected_;
+        connections_.insert(conn);
+	}
+	else
+    {
+        MutexLockGuard lock(mutex_);
+		--numConnected_;
+		connections_.erase(conn);
+	}
+}
+
+void HookServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
+	  	  	  				muduo::net::Buffer* buf,
+	  	  	  				muduo::Timestamp t)
+{
+    LOG_DEBUG << "Hook: " << buf->readableBytes() << " are waiting.";
+	buf->retrieveAll();
+}
+
+void HookServer::broadcast()
+{
+    LOG_INFO << "size = " << connections_.size();
+
+    for (ConnectionList::iterator it = connections_.begin();
+        it != connections_.end(); ++it)
+    {
+        if ((*it)->connected()) (*it)->send("Hello");
+    }
+}
+
+
+void HookServer::broadcast(const uint8_t *dId, DevData *pDev, unsigned len)
+{
+    HookHeader header;
+
+    header.len_[0] = (len + 8)/256;
+    header.len_[1] = (len + 8)%256;
+    memcpy(header.dId_, dId, 6);
+
+//    muduo::net::Buffer buf;
+//    buf.append(&header, sizeof(header));
+//    buf.append(pDev, len);
+
+    for (ConnectionList::iterator it = connections_.begin();
+        it != connections_.end(); ++it)
+    {
+        if ((*it)->connected()) {
+            (*it)->send(&header, sizeof(header));
+            (*it)->send(pDev, len);
+        }
+    }
+}
 //#endif // 0
 
 

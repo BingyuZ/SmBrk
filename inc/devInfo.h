@@ -82,7 +82,6 @@ struct DevDatawF {
     uint8_t  rawData_[0];
 };
 
-
 struct GPRSInfo {
     uint8_t  IMEI_[8];
     uint8_t  opid_[4];
@@ -91,6 +90,11 @@ struct GPRSInfo {
     uint8_t  ci_[2];
     int8_t   asu_;
     uint8_t  ber_;
+};
+
+struct HookHeader {
+    uint8_t len_[2];
+    uint8_t dId_[6];
 };
 
 #endif // DEVINFO_H
