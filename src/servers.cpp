@@ -84,7 +84,7 @@ static int GetGPRSInfo(GPRSInfo *pInfo, const muduo::string&msg)
     if (msg.length() < length + 0x10) return -1;
     if (type != 1) return -2;
 
-    memcpy(pInfo, pHeader->body_+8, length);
+    memcpy(pInfo, pHeader->body_+8, sizeof(GPRSInfo));
     return type;
 }
 
