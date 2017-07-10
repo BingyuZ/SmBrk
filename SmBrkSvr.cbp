@@ -45,6 +45,7 @@
 			<Add directory="../build/release-install/lib" />
 		</Linker>
 		<Unit filename="inc/Hiredis.h" />
+		<Unit filename="inc/colors.h" />
 		<Unit filename="inc/commons.h" />
 		<Unit filename="inc/devInfo.h" />
 		<Unit filename="inc/gconf.h" />

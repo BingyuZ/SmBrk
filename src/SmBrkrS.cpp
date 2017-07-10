@@ -26,7 +26,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
-using namespace std;
+//using namespace std;
 
 #include <ctime>
 
@@ -51,6 +51,18 @@ using muduo::inspect::stringPrintf;
 
 boost::mt19937 gRng;
 
+string GetOverview(HttpRequest::Method, const Inspector::ArgList&,
+                   AgtServer *pAgt, HookServer *pHook)
+{
+	string result;
+
+	result.reserve(1024);
+	stringPrintf(&result, "Current active links:\n\n");
+	stringPrintf(&result, "Agents: %5d / %d\n", pAgt->getNumConn(), gConf.agtCmax_);
+	stringPrintf(&result, "Hooks:  %5d / %d\n", pHook->getNumConn(), gConf.hookCmax_);
+
+    return result;
+}
 
 void SBSMain(void)
 {
@@ -80,7 +92,9 @@ void SBSMain(void)
 
 	// Add inspector entrance
 
-	//ins.add()
+	ins.add("smbrk", "links",
+            boost::bind(GetOverview, _1, _2, &agtServer, &hookSvr),
+            "Active links overview");
 
 	loop.loop();
 }

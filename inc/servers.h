@@ -50,6 +50,8 @@ public:
 
     virtual ~AgtServer() {}
 
+    unsigned getNumConn(void) { return numConnected_; }
+
     typedef boost::shared_ptr<Session> SessionPtr;
 
 protected:
@@ -114,6 +116,8 @@ public:
 
     void broadcast();   // Test
     void broadcast(const uint8_t *dId, DevData *pDev, unsigned len);
+
+    unsigned getNumConn(void) { return numConnected_; }
 
 protected:
     void onConnection(const TcpConnectionPtr& conn);
