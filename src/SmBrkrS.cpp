@@ -37,8 +37,6 @@ using namespace muduo::net;
 #include "servers.h"
 
 
-
-
 namespace muduo
 {
 namespace inspect
@@ -50,6 +48,7 @@ int stringPrintf(string* out, const char* fmt, ...) __attribute__ ((format (prin
 using muduo::inspect::stringPrintf;
 
 boost::mt19937 gRng;
+
 
 string GetOverview(HttpRequest::Method, const Inspector::ArgList&,
                    AgtServer *pAgt, HookServer *pHook)
@@ -73,7 +72,7 @@ void SBSMain(void)
 
 	EventLoop loop;
 	EventLoopThread tIns, tQuery;
-	Inspector ins(tIns.startLoop(), InetAddress(gConf.monPort_), "Inspector");
+	Inspector ins(tIns.startLoop(), InetAddress(gConf.monPort_), "Breaker Inspector");
 
 	hiredis::redisQuery qRedis(&loop, InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
 	qRedis.connect();
@@ -87,14 +86,14 @@ void SBSMain(void)
 
 	// Start Agent Listener
     AgtServer agtServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
-                      gConf.agtCmax_, "AgentServer", &sRedis, &qRedis, &hookSvr);
+                       gConf.agtCmax_, "AgentServer", &sRedis, &qRedis, &hookSvr);
     agtServer.start();
 
 	// Add inspector entrance
 
 	ins.add("smbrk", "links",
             boost::bind(GetOverview, _1, _2, &agtServer, &hookSvr),
-            "Active links overview");
+            "print links overview");
 
 	loop.loop();
 }
