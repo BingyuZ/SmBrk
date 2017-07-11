@@ -20,8 +20,6 @@ using namespace hiredis;
 extern void PrintId(const uint8_t *p, char *tt);
 static const char hexStr[] = "0123456789abcdef";
 
-const int gMaxRecord = 119;
-
 
 class SessID {
 public:
@@ -266,7 +264,7 @@ void redisStore::dataRpt(const uint8_t *dId, const DevData *pDev, int len)
     *s1 = 0;
 
     // Add restrict
-    sprintf(s2, "ltrim devData:%s 0 %d", Sid, gMaxRecord-1);
+    sprintf(s2, "ltrim devData:%s 0 %d", Sid, gConf.agtDHist_-1);
     LOG_DEBUG << "RCmd: " << ZEC_BROWN << s2 << ZEC_RESET;
     #ifdef WRITEREDISLOG
     aSet(s2);

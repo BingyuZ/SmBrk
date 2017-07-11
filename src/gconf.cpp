@@ -56,6 +56,7 @@ void GConf::PrintPara(void)
 
 	cout << "Port for devices: " << agtPort_ << endl;
 	cout << "Maximum concurrent connections for devices: " << agtCmax_ << endl;
+	cout << "Maximum data history of a device: " << agtDHist_ << endl;
 
 	cout << "Port for command agents: " << cmdPort_ << endl;
 	cout << "Maximum concurrent connections for command agents: " << cmdCmax_ << endl;
@@ -81,6 +82,9 @@ bool GConf::SetPara(ReadConf &r, string &reason)
 	if (agtPort_ <= 0 || agtPort_> 32000)	{ reason = "AGTPORT wrong.";	return false;	}
 	if (r.GetValue("AGTMAX", v)) agtCmax_ = atoi(v.c_str()); else agtCmax_ = 5000;
 	if (agtCmax_ <= 0 || agtCmax_> 20000)	{ reason = "AGTMAX wrong.";	return false;	}
+	if (r.GetValue("AGTDHIST", v)) agtDHist_ = atoi(v.c_str()); else agtDHist_ = 120;
+	if (agtDHist_ <= 5 || agtDHist_> 1000)	{ reason = "AGTDHIST wrong.";	return false;	}
+
 
 	if (r.GetValue("CMDPORT", v)) cmdPort_ = atoi(v.c_str()); else cmdPort_ = 6668;
 	if (cmdPort_ <= 0 || cmdPort_> 32000)	{ reason = "CMDPORT wrong.";	return false;	}

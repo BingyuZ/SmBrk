@@ -28,6 +28,7 @@ public:
 	// Ports
     int16_t		agtPort_;   //
 	int32_t		agtCmax_;   // Maximum concurrent connections for Devices
+	int16_t     agtDHist_;
 
 	int16_t		cmdPort_;
 	int16_t		cmdCmax_;   // Maximum concurrent connections for Commands
