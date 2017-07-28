@@ -80,6 +80,8 @@ void SBSMain(void)
 	hiredis::redisStore sRedis(tQuery.startLoop(), InetAddress(gConf.rds1Addr_, gConf.rds1Port_));
     sRedis.connect();
 
+    LOG_DEBUG << "Redis done.";
+
     HookServer hookSvr(&loop, InetAddress(static_cast<uint16_t>(gConf.hookPort_)),
                        gConf.hookCmax_, "TCPHook");
     hookSvr.start();
