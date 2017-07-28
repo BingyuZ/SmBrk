@@ -141,12 +141,14 @@ public:
 		muduo::net::Buffer buf;
 		buf.append(&header, 12);
 
-		uint32_t be32 = muduo::net::sockets::hostToNetwork32(first);
+		// TODO:
+        buf.appendInt32(0xbbbbbbbb);
+		//uint32_t be32 = muduo::net::sockets::hostToNetwork32(first);
 		buf.prependInt32(first);
 
 		// TODO:
 		//buf.appendInt32(Chksum(be32, reinterpret_cast<const char *>(&header), 12));
-		buf.appendInt32(0xbbbbbbbb);
+		//buf.appendInt32(0xbbbbbbbb);
 		conn_->send(&buf);
 	}
 
