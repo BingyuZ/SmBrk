@@ -144,7 +144,9 @@ public:
 		uint32_t be32 = muduo::net::sockets::hostToNetwork32(first);
 		buf.prependInt32(first);
 
-		buf.appendInt32(Chksum(be32, reinterpret_cast<const char *>(&header), 12));
+		// TODO:
+		//buf.appendInt32(Chksum(be32, reinterpret_cast<const char *>(&header), 12));
+		buf.appendInt32(0xbbbbbbbb);
 		conn_->send(&buf);
 	}
 
