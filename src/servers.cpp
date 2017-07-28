@@ -33,7 +33,7 @@ uint32_t GetMyRand(bool t)
         return v;
     }
     else {
-        seed = seed * 134775813 + 1;
+        seed = seed * 6364136223846793005ull + 1;
         return seed >> 32;
     }
 }
