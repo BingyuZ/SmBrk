@@ -381,6 +381,10 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
 
         LOG_DEBUG << ZEC_GREEN << "Pos:" << pos << " Type:" << pInfo->type_
                   << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
+        if (pInfo->len_ < 4) {
+            LOG_DEBUG << "Invalid dev status length:" << pInfo->len_;
+            break;
+        }
         pos += pInfo->len_;
         if (pos > message.length()) break;
         dId = Get64FromDevInfo(pInfo);
@@ -454,6 +458,10 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
         LOG_DEBUG << ZEC_GREEN << "Pos:" << pos << " Type:" << pInfo->type_
                   << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
         pos += pInfo->len_;
+        if (pInfo->len_ < 4) {
+            LOG_DEBUG << "Invalid data length:" << pInfo->len_;
+            break;
+        }
         if (pos > message.length()) break;
 
         // TODO: special treatment should be done for
