@@ -400,6 +400,8 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
                     LOG_DEBUG << "Add device error:";
                 }
                 else {
+                    // TODO: Write device basic information
+
                     // Write device login
                     pSRedis_->devLogin(pInfo->dID_, pSess->agentId_, pDev->modId_);
                     // TODO: broadcast device login
@@ -412,6 +414,7 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
         case DP_LOST:
             pSess->delDevice(pInfo->dID_);
             pSRedis_->devLogout(pInfo->dID_);
+
             // TODO: broadcast device LOST
             if (ts.count(dId) == 0) {
                 ts.insert(dId);

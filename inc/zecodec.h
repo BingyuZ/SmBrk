@@ -171,6 +171,7 @@ public:
 		buf.append(&header, 12);
 		buf.prependInt32(first);
 
+		length = (length+7) & 0xfff8;
 		// encrypt here
 		// If pwd == NULL, using passwd_, else pwd
 		for (uint32_t i=0; i<length; i+=8) {
@@ -178,7 +179,7 @@ public:
             ptr += 8;
 		}
 
-		uint32_t crc = 0;   // TODO: Real CRC
+		uint32_t crc = 0xbbbbbbbb;   // TODO: Real CRC
 		buf.appendInt32(crc);
 
 		conn_->send(&buf);
