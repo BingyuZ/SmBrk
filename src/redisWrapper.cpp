@@ -214,6 +214,7 @@ void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
     char Sid[20], t[20], s[200];
     uint16_t dur = err->duration_[0]*256 + err->duration_[1];
 
+    if (dur == 0) return;   // if dur ==0, do NOT write to DB
     PrintId(dId, Sid);
     formatET(t, err->time_);
 

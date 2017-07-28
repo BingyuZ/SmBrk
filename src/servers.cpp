@@ -456,15 +456,18 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
         pos += pInfo->len_;
         if (pos > message.length()) break;
 
+        // TODO: special treatment should be done for
+        //  DP_DATAUPF with duration_ == 0
         if (pInfo->type_ == DP_DATAUPF) {
             DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
             pSRedis_->errHistF(pInfo->dID_, pErr);
         }
+        #if 0
         else if (pInfo->type_ == DP_DATAUPG) {
             DevErrHisF *pErr = (DevErrHisF *)pInfo->con_;
             pSRedis_->errRHist(pInfo->dID_, pErr);
         }
-
+        #endif  // Disable UPG
         if (pInfo->type_ == DP_DATAUP || pInfo->type_ == DP_DATAUPF
             || pInfo->type_ == DP_DATAUPG)
         {
