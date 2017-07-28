@@ -274,8 +274,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 
         if (*pC1 != 'Z' && *(pC1+1) != 'E') {
 			LOG_ERROR << "Wrong packet head " << *pC1 << " " << *(pC1+1);
-			conn->shutdown(); // FIXME: disable reading
-			break;
+			goto errorQuit;
 		}
 
         pC1 += 2;
@@ -284,16 +283,14 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		if (len < kMinLength - 4)   // Length = 12+
 		{
 			LOG_WARN << "Invalid packet length " << len;
-			conn->shutdown();  // FIXME: disable reading
-			break;
+			goto errorQuit;
 		}
 		else if (buf->readableBytes() >= len + 8)   // Header + CRC
 		{
 		    uint8_t cmd;
 		    if (!CheckCRC(pC1-2, len)) {
                 LOG_WARN << "CRC Error";
-                conn->shutdown();  // FIXME: disable reading
-                break;
+                goto errorQuit;
 		    }
 		    pC1 += 2;
             buf->retrieve(kHeaderLen);  // 4
@@ -309,8 +306,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 if ((len != 16 && len <20) || pSess->stage_ != SC_CHSENT
                      || !pSess->CheckPass(message)) {
                     LOG_WARN << "Stage / password error";
-                    conn->shutdown();  // FIXME: disable reading
-                    break;
+                    goto errorQuit;
                 }
                 uint32_t aid = muduo::net::sockets::networkToHost32(*(uint32_t *)(pC1+12));
                 buf->retrieve(len + 4);
@@ -328,8 +324,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                     }
                     else {
                         LOG_WARN << "GPRSInfo error:" << ret;
-                        conn->shutdown();  // FIXME: disable reading
-                        break;
+                        goto errorQuit;
                     }
                 }
                 pSess->sendLogRes(pC1);
@@ -338,8 +333,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                 muduo::string message;
                 if (pSess->stage_ != SC_PASSED || !pSess->decrypt(pC1, &message, len)) {
                     LOG_WARN << "Stage / decryption error";
-                    conn->shutdown();
-                    break;
+                    goto errorQuit;
                 }
                 buf->retrieve(len + 4);
 
@@ -348,10 +342,12 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                     pSess->sendPacket(CAS_KALIVE, NULL, 0);
                     break;
                 case CAA_DEVSTA:
-                    DevStatus(conn, pSess, message);
+                    if (DevStatus(conn, pSess, message) < 0)
+                        goto errorQuit;
                     break;
                 case CAA_DATA:
-                    NewData(conn, pSess, message);
+                    if (NewData(conn, pSess, message) < 0)
+                        goto errorQuit;
                     break;
                 default:
                     LOG_WARN << "Unknown command type: " << cmd;
@@ -362,10 +358,13 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		}
 		else break;	// Haven't got enough bytes
     }
+    return;
+errorQuit:
+    conn->shutdown(); // FIXME: disable reading
 }
 
 
-void AgtServer::DevStatus(const TcpConnectionPtr& conn,
+int AgtServer::DevStatus(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
 {
@@ -382,11 +381,14 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
         LOG_DEBUG << ZEC_GREEN << "Pos:" << pos << " Type:" << pInfo->type_
                   << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
         if (pInfo->len_ < 4) {
-            LOG_DEBUG << "Invalid dev status length:" << pInfo->len_;
-            break;
+            LOG_DEBUG << "Invalid dev status length: " << pInfo->len_;
+            return -1;
         }
         pos += pInfo->len_;
-        if (pos > message.length()) break;
+        if (pos > message.length()) {
+            LOG_DEBUG << "Invalid dev status pos: " << pos;
+            return -2;
+        }
         dId = Get64FromDevInfo(pInfo);
 
         switch (pInfo->type_) {
@@ -442,9 +444,10 @@ void AgtServer::DevStatus(const TcpConnectionPtr& conn,
             break;
         }
     }
+    return 0;
 }
 
-void AgtServer::NewData(const TcpConnectionPtr& conn,
+int AgtServer::NewData(const TcpConnectionPtr& conn,
                           Session * pSess,
                           const muduo::string& message)
 {
@@ -459,10 +462,13 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
                   << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
         pos += pInfo->len_;
         if (pInfo->len_ < 4) {
-            LOG_DEBUG << "Invalid data length:" << pInfo->len_;
-            break;
+            LOG_DEBUG << "Invalid data length: " << pInfo->len_;
+            return -1;
         }
-        if (pos > message.length()) break;
+        if (pos > message.length()) {
+            LOG_DEBUG << "Invalid data pos: " << pos;
+            return -1;
+        }
 
         // TODO: special treatment should be done for
         //  DP_DATAUPF with duration_ == 0
@@ -496,6 +502,7 @@ void AgtServer::NewData(const TcpConnectionPtr& conn,
             // TODO: Send Error
         }
     }
+    return 0;
 }
 
 void AgtServer::onBlockMessage( const TcpConnectionPtr& conn,
