@@ -400,7 +400,6 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
                     LOG_DEBUG << "Add device error:";
                 }
                 else {
-                    // TODO: Write device basic information
                     pSRedis_->devProp(pInfo->dID_, pDev, pInfo->len_-sizeof(DevInfoHeader));
 
                     // Write device login
