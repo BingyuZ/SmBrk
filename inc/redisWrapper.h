@@ -9,6 +9,7 @@ struct GPRSInfo;
 struct DevErrHis;
 struct DevErrHisF;
 struct DevData;
+struct DevBasic;
 
 namespace hiredis
 {
@@ -34,6 +35,7 @@ class redisStore : public boost::enable_shared_from_this<redisStore>,
   void agentLogin(uint32_t, const GPRSInfo*);
   void devLogin(const uint8_t *, uint32_t, uint8_t);
   void devLogout(const uint8_t *);
+  void devProp(const uint8_t *, const struct DevBasic *, int);
   void errHist(const uint8_t *, const struct DevErrHis *);
   void errHistF(const uint8_t *, const struct DevErrHisF *);
   void errRHist(const uint8_t *, const struct DevErrHisF *);

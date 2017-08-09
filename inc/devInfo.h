@@ -40,11 +40,11 @@ struct DevInfoHeader {
 };
 
 struct DevBasic {
+	uint8_t  ver_;
+    uint8_t  modId_;
     uint16_t iCha_;
     uint16_t iRate_;
     uint16_t vRate_;
-    uint8_t  modId_;
-    uint8_t  status_;
 };
 
 struct DevErrHis {

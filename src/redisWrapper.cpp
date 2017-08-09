@@ -192,6 +192,28 @@ void redisStore::devLogout(const uint8_t *dId)
     #endif
 }
 
+void redisStore::devProp(const uint8_t *dId, const struct DevBasic *pBasic, int len)
+{
+    char Sid[20], s[100];
+    uint8_t *raw = (uint8_t *)pBasic;
+
+    PrintId(dId, Sid);
+
+    sprintf(s, "set devProp:%s %02X$", Sid, pBasic->ver_);
+    char *s1 = s;
+    while (*s1) ++s1;
+
+    for (int i=2; i<len; i++){
+        *s1++ = hexStr[raw[i] / 16];
+        *s1++ = hexStr[raw[i] % 16];
+    }
+    *s1 = 0;
+
+    LOG_DEBUG << "RCmd: " << ZEC_BROWN << s << ZEC_RESET;
+    #ifdef WRITEREDISLOG
+    aSet(s);
+    #endif
+}
 
 void redisStore::errHist(const uint8_t *dId, const struct DevErrHis *err)
 {
@@ -248,7 +270,7 @@ void redisStore::errRHist(const uint8_t *dId, const struct DevErrHisF *err)
 
 void redisStore::dataRpt(const uint8_t *dId, const DevData *pDev, int len)
 {
-    char Sid[20], buf[20], s[200], s2[50];
+    char Sid[20], buf[20], s[400], s2[50];
     int i;
 
     PrintId(dId, Sid);

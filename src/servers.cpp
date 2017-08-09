@@ -401,6 +401,7 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
                 }
                 else {
                     // TODO: Write device basic information
+                    pSRedis_->devProp(pInfo->dID_, pDev, pInfo->len_-sizeof(DevInfoHeader));
 
                     // Write device login
                     pSRedis_->devLogin(pInfo->dID_, pSess->agentId_, pDev->modId_);

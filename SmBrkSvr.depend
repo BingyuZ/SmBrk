@@ -47,11 +47,11 @@
 	"iostream"
 	"readconf.h"
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Logging.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Logging.h
 	<muduo/base/LogStream.h>
 	<muduo/base/Timestamp.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/LogStream.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/LogStream.h
 	<muduo/base/StringPiece.h>
 	<muduo/base/Types.h>
 	<assert.h>
@@ -59,27 +59,27 @@
 	<string>
 	<boost/noncopyable.hpp>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/StringPiece.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/StringPiece.h
 	<string.h>
 	<iosfwd>
 	<muduo/base/Types.h>
 	<string>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Types.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Types.h
 	<stdint.h>
 	<string>
 	<ext/vstring.h>
 	<ext/vstring_fwd.h>
 	<assert.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Timestamp.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Timestamp.h
 	<muduo/base/copyable.h>
 	<muduo/base/Types.h>
 	<boost/operators.hpp>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/copyable.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/copyable.h
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/CurrentThread.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/CurrentThread.h
 	<stdint.h>
 
 1481596606 source:/home/bingyu/Work/SmBrkSvr/readconf.cpp
@@ -166,7 +166,7 @@
 	<boost/noncopyable.hpp>
 	<cassert>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Buffer.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/Buffer.h
 	<muduo/base/copyable.h>
 	<muduo/base/StringPiece.h>
 	<muduo/base/Types.h>
@@ -176,11 +176,11 @@
 	<assert.h>
 	<string.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Endian.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/Endian.h
 	<stdint.h>
 	<endian.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/TcpConnection.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/TcpConnection.h
 	<muduo/base/StringPiece.h>
 	<muduo/base/Types.h>
 	<muduo/net/Callbacks.h>
@@ -192,12 +192,12 @@
 	<boost/scoped_ptr.hpp>
 	<boost/shared_ptr.hpp>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Callbacks.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/Callbacks.h
 	<boost/function.hpp>
 	<boost/shared_ptr.hpp>
 	<muduo/base/Timestamp.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/InetAddress.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/InetAddress.h
 	<muduo/base/copyable.h>
 	<muduo/base/StringPiece.h>
 	<netinet/in.h>
@@ -221,13 +221,13 @@
 	"redisWrapper.h"
 	"servers.h"
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Mutex.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Mutex.h
 	<muduo/base/CurrentThread.h>
 	<boost/noncopyable.hpp>
 	<assert.h>
 	<pthread.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/EventLoop.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/EventLoop.h
 	<vector>
 	<boost/any.hpp>
 	<boost/function.hpp>
@@ -239,21 +239,21 @@
 	<muduo/net/Callbacks.h>
 	<muduo/net/TimerId.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/TimerId.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/TimerId.h
 	<muduo/base/copyable.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/EventLoopThread.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/EventLoopThread.h
 	<muduo/base/Condition.h>
 	<muduo/base/Mutex.h>
 	<muduo/base/Thread.h>
 	<boost/noncopyable.hpp>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Condition.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Condition.h
 	<muduo/base/Mutex.h>
 	<boost/noncopyable.hpp>
 	<pthread.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Thread.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Thread.h
 	<muduo/base/Atomic.h>
 	<muduo/base/Types.h>
 	<boost/function.hpp>
@@ -261,11 +261,11 @@
 	<boost/shared_ptr.hpp>
 	<pthread.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/base/Atomic.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/base/Atomic.h
 	<boost/noncopyable.hpp>
 	<stdint.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/inspect/Inspector.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/inspect/Inspector.h
 	<muduo/base/Mutex.h>
 	<muduo/net/http/HttpRequest.h>
 	<muduo/net/http/HttpServer.h>
@@ -274,7 +274,7 @@
 	<boost/noncopyable.hpp>
 	<boost/scoped_ptr.hpp>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/http/HttpRequest.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/http/HttpRequest.h
 	<muduo/base/copyable.h>
 	<muduo/base/Timestamp.h>
 	<muduo/base/Types.h>
@@ -282,11 +282,11 @@
 	<assert.h>
 	<stdio.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/http/HttpServer.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/http/HttpServer.h
 	<muduo/net/TcpServer.h>
 	<boost/noncopyable.hpp>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/TcpServer.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/TcpServer.h
 	<muduo/base/Atomic.h>
 	<muduo/base/Types.h>
 	<muduo/net/TcpConnection.h>
@@ -334,14 +334,14 @@
 	<boost/shared_ptr.hpp>
 	<hiredis/hiredis.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/Channel.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/Channel.h
 	<boost/function.hpp>
 	<boost/noncopyable.hpp>
 	<boost/shared_ptr.hpp>
 	<boost/weak_ptr.hpp>
 	<muduo/base/Timestamp.h>
 
-1480998508 /home/bingyu/Work/build/release-install/include/muduo/net/SocketsOps.h
+1498468058 /home/bingyu/Work/build/release-install/include/muduo/net/SocketsOps.h
 	<arpa/inet.h>
 
 1501203970 source:/home/bingyu/Work/SmBrkSvr/src/redisWrapper.cpp
@@ -357,7 +357,7 @@
 1499320444 /home/bingyu/Work/SmBrkSvr/inc/redisWrapper.h
 	"Hiredis.h"
 
-1498824538 source:/home/bingyu/Work/SmBrk/src/commons.cpp
+1501660634 source:/home/bingyu/Work/SmBrk/src/commons.cpp
 	"commons.h"
 	<iostream>
 	<boost/static_assert.hpp>
@@ -372,19 +372,19 @@
 	<fcntl.h>
 	<sys/eventfd.h>
 
-1498824538 /home/bingyu/Work/SmBrk/inc/commons.h
+1501660634 /home/bingyu/Work/SmBrk/inc/commons.h
 	"gconf.h"
 	<unistd.h>
 	<stdlib.h>
 	<stdio.h>
 	<poll.h>
 
-1498480767 /home/bingyu/Work/SmBrk/inc/gconf.h
+1501660634 /home/bingyu/Work/SmBrk/inc/gconf.h
 	<stdint.h>
 	<vector>
 	<string>
 
-1498740706 source:/home/bingyu/Work/SmBrk/src/gconf.cpp
+1501660634 source:/home/bingyu/Work/SmBrk/src/gconf.cpp
 	"gconf.h"
 	"readconf.h"
 	<stdlib.h>
@@ -395,11 +395,11 @@
 	<string>
 	<iostream>
 
-1498480767 /home/bingyu/Work/SmBrk/inc/readconf.h
+1501660634 /home/bingyu/Work/SmBrk/inc/readconf.h
 	<map>
 	<string>
 
-1498740706 source:/home/bingyu/Work/SmBrk/src/Hiredis.cc
+1501660634 source:/home/bingyu/Work/SmBrk/src/Hiredis.cc
 	"Hiredis.h"
 	<muduo/base/Logging.h>
 	<muduo/net/Channel.h>
@@ -407,7 +407,7 @@
 	<muduo/net/SocketsOps.h>
 	<hiredis/async.h>
 
-1498658703 /home/bingyu/Work/SmBrk/inc/Hiredis.h
+1501660634 /home/bingyu/Work/SmBrk/inc/Hiredis.h
 	<muduo/base/StringPiece.h>
 	<muduo/base/Types.h>
 	<muduo/net/Callbacks.h>
@@ -418,14 +418,14 @@
 	<boost/shared_ptr.hpp>
 	<hiredis/hiredis.h>
 
-1498480767 source:/home/bingyu/Work/SmBrk/src/main.cpp
+1501660634 source:/home/bingyu/Work/SmBrk/src/main.cpp
 	"commons.h"
 	<muduo/base/Logging.h>
 	<muduo/base/CurrentThread.h>
 	"iostream"
 	"readconf.h"
 
-1498480767 source:/home/bingyu/Work/SmBrk/src/readconf.cpp
+1501660634 source:/home/bingyu/Work/SmBrk/src/readconf.cpp
 	"commons.h"
 	<fstream>
 	<iostream>
@@ -440,11 +440,10 @@
 	<string>
 	"commons.h"
 
-1499095972 /home/bingyu/Work/SmBrk/inc/redisWrapper.h
-	"devInfo.h"
+1502269546 /home/bingyu/Work/SmBrk/inc/redisWrapper.h
 	"Hiredis.h"
 
-1498740706 source:/home/bingyu/Work/SmBrk/src/SmBrkrS.cpp
+1501660634 source:/home/bingyu/Work/SmBrk/src/SmBrkrS.cpp
 	<muduo/base/Mutex.h>
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
@@ -463,7 +462,7 @@
 	"redisWrapper.h"
 	"servers.h"
 
-1498916017 /home/bingyu/Work/SmBrk/inc/servers.h
+1501660634 /home/bingyu/Work/SmBrk/inc/servers.h
 	<stdint.h>
 	<muduo/base/Mutex.h>
 	<muduo/net/EventLoop.h>
@@ -474,7 +473,7 @@
 	"devInfo.h"
 	<set>
 
-1499096152 /home/bingyu/Work/SmBrk/inc/zecodec.h
+1501660634 /home/bingyu/Work/SmBrk/inc/zecodec.h
 	<muduo/base/Logging.h>
 	<muduo/net/Buffer.h>
 	<muduo/net/Endian.h>
@@ -487,7 +486,7 @@
 1499394363 /home/bingyu/Work/SmBrkSvr/inc/devInfo.h
 	<stdint.h>
 
-1498993796 /home/bingyu/Work/SmBrk/inc/devInfo.h
+1502269546 /home/bingyu/Work/SmBrk/inc/devInfo.h
 	<stdint.h>
 
 1499096152 source:/home/bingyu/Work/SmBrk/src/servers.cpp
