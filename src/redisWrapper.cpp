@@ -240,7 +240,7 @@ void redisStore::errHistF(const uint8_t *dId, const struct DevErrHisF *err)
     PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lpush devErr:%s %s$%02X$%d$%02X$d%d$%d$%d$%d",
+    sprintf(s, "lpush devErr:%s %s$%02X$%d$%02X$%d$%d$%d$%d",
                 Sid, t, err->lastReason_, dur, err->modId_,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
                 err->curr_[4]*256+err->curr_[5], err->curr_[6]*256+err->curr_[7]);
@@ -258,7 +258,7 @@ void redisStore::errRHist(const uint8_t *dId, const struct DevErrHisF *err)
     PrintId(dId, Sid);
     formatET(t, err->time_);
 
-    sprintf(s, "lset devErr:%s 0 %s$%02X$%d$%02X$d%d$%d$%d$%d",
+    sprintf(s, "lset devErr:%s 0 %s$%02X$%d$%02X$%d$%d$%d$%d",
                 Sid, t, err->lastReason_, dur, err->modId_,
                 err->curr_[0]*256+err->curr_[1], err->curr_[2]*256+err->curr_[3],
                 err->curr_[4]*256+err->curr_[4], err->curr_[6]*256+err->curr_[7]);
@@ -304,7 +304,7 @@ bool FillHist(DevErrHis *pHist, const char *ps, uint32_t len)
 {
     int y,mo,d,h,m,s;
     if (len < 19 || ps[14] != '$' || ps[17] != '$' ) return false;
-    sscanf(ps, "20%2d%2d%2d%2d%2d%2d", &y, &mo, &d, &h, &m, &s);
+    sscanf(ps+2, "%2d%2d%2d%2d%2d%2d", &y, &mo, &d, &h, &m, &s);
     pHist->time_[0] = y;
     pHist->time_[1] = mo;
     pHist->time_[2] = d;
@@ -313,7 +313,7 @@ bool FillHist(DevErrHis *pHist, const char *ps, uint32_t len)
     pHist->time_[5] = s;
     //LOG_DEBUG << "Hist time:" << y<< mo << d << h << m << s;
     s = 0;
-    sscanf(ps+15, "%d$%d$%d", &h, &m, &s);
+    sscanf(ps+15, "%X$%d$%X", &h, &m, &s);
     if (s == 0) return false;
     pHist->lastReason_ = h;
     pHist->duration_[0] = m/256;
