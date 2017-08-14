@@ -433,12 +433,15 @@
 	<algorithm>
 	"readconf.h"
 
-1499096057 source:/home/bingyu/Work/SmBrk/src/redisWrapper.cpp
+1502349699 source:/home/bingyu/Work/SmBrk/src/redisWrapper.cpp
+	"servers.h"
 	"redisWrapper.h"
+	"commons.h"
+	"colors.h"
 	<muduo/base/Logging.h>
 	<muduo/net/EventLoop.h>
+	<memory.h>
 	<string>
-	"commons.h"
 
 1502269546 /home/bingyu/Work/SmBrk/inc/redisWrapper.h
 	"Hiredis.h"
@@ -462,7 +465,7 @@
 	"redisWrapper.h"
 	"servers.h"
 
-1501660634 /home/bingyu/Work/SmBrk/inc/servers.h
+1502702424 /home/bingyu/Work/SmBrk/inc/servers.h
 	<stdint.h>
 	<muduo/base/Mutex.h>
 	<muduo/net/EventLoop.h>
@@ -473,7 +476,7 @@
 	"devInfo.h"
 	<set>
 
-1501660634 /home/bingyu/Work/SmBrk/inc/zecodec.h
+1502702451 /home/bingyu/Work/SmBrk/inc/zecodec.h
 	<muduo/base/Logging.h>
 	<muduo/net/Buffer.h>
 	<muduo/net/Endian.h>
@@ -498,4 +501,6 @@
 	<sys/time.h>
 
 1499328436 /home/bingyu/Work/SmBrkSvr/inc/colors.h
+
+1501660634 /home/bingyu/Work/SmBrk/inc/colors.h
 

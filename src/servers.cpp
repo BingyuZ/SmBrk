@@ -172,7 +172,7 @@ void Session::sendDataAck(DevInfoHeader *pInfo)
     sendPacket(CAS_DACK, &head, head.len_);
 }
 
-void Session::sendLogRes(const char *pC1)
+void Session::sendLogRes(const uint8_t *pC1)
 {
     uint32_t pwd[4];
     pwd[0] = passwd_[0];
@@ -257,7 +257,7 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 //  node->lastReceiveTime = time;
 
 // Returns false on error
-bool AgtServer::CheckCRC(const char *c, uint32_t len)
+bool AgtServer::CheckCRC(const uint8_t *c, uint32_t len)
 {
     // TODO: Check CRC
     return true;
@@ -270,7 +270,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 {
     while (buf->readableBytes() >= kMinLength + 4) // kMinLength == 16  exclude CRC
     {
-		const char* pC1 = (const char *) buf->peek();
+		const uint8_t* pC1 = (const uint8_t *) buf->peek();
 
         if (*pC1 != 'Z' && *(pC1+1) != 'E') {
 			LOG_ERROR << "Wrong packet head " << *pC1 << " " << *(pC1+1);

@@ -55,7 +55,7 @@ public:
     typedef boost::shared_ptr<Session> SessionPtr;
 
 protected:
-    bool CheckCRC(const char*, uint32_t len);
+    bool CheckCRC(const uint8_t*, uint32_t len);
 
     int DevStatus(const TcpConnectionPtr&, Session *, const muduo::string&);
     int NewData(const TcpConnectionPtr&, Session *, const muduo::string&);

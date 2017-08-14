@@ -197,14 +197,14 @@ public:
 	void sendDevHisN(const uint8_t *);
 
 	void sendDataAck(struct DevInfoHeader *);
-	void sendLogRes(const char *);
+	void sendLogRes(const uint8_t *);
 
 	uint64_t getEnc(uint64_t salt)
 	{
 	    return 0;
 	}
 
-	bool decrypt(const char *src, muduo::string *msg, int length)
+	bool decrypt(const uint8_t *src, muduo::string *msg, int length)
 	{
         const struct PacketHeader *pH = (const struct PacketHeader *)src;
         if (pH->ver_ != ZE_VER || pH->rev_ != AU_ENCRY) return false;
@@ -216,7 +216,7 @@ public:
 	    src += 12;
 	    for (int i=0; i<((length-5)&0xfff8); i+=8) {
             salt = getEnc(salt);
-            msg->append(src, 8);
+            msg->append((const char *)src, 8);
             src += 8;
 	    }
 	    LOG_DEBUG << msg->length() << " bytes decrypted";

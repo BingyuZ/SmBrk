@@ -128,7 +128,7 @@ static void formatGPRS(char *buf, const GPRSInfo* pGprs)
     }
     *buf++ = hexStr[pGprs->IMEI_[7]/16];
 
-    sprintf(buf, "$O%03d-%02d$N",
+    sprintf(buf, "$%03d-%02d$N",
             pGprs->opid_[0]*256+pGprs->opid_[1], pGprs->opid_[3]);
     while (*buf) ++buf;
 
