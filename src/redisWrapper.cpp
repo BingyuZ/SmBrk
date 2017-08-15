@@ -304,7 +304,7 @@ bool FillHist(DevErrHis *pHist, const char *ps, uint32_t len)
 {
     int y,mo,d,h,m,s;
     if (len < 19 || ps[14] != '$' || ps[17] != '$' ) return false;
-    sscanf(ps+2, "%2d%2d%2d%2d%2d%2d", &y, &mo, &d, &h, &m, &s);
+    sscanf(ps+2, "%2x%2x%2x%2x%2x%2x", &y, &mo, &d, &h, &m, &s);
     pHist->time_[0] = y;
     pHist->time_[1] = mo;
     pHist->time_[2] = d;

@@ -492,13 +492,14 @@
 1502269546 /home/bingyu/Work/SmBrk/inc/devInfo.h
 	<stdint.h>
 
-1499096152 source:/home/bingyu/Work/SmBrk/src/servers.cpp
+1502702424 source:/home/bingyu/Work/SmBrk/src/servers.cpp
 	"servers.h"
 	"commons.h"
 	"redisWrapper.h"
 	<boost/random.hpp>
 	<memory.h>
 	<sys/time.h>
+	"colors.h"
 
 1499328436 /home/bingyu/Work/SmBrkSvr/inc/colors.h
 
