@@ -19,7 +19,7 @@ using namespace hiredis;
 
 extern void PrintId(const uint8_t *p, char *tt);
 static const char hexStr[] = "0123456789abcdef";
-
+static const char *gRedisPass = "AUTH ZESmBrkTstSvr";
 
 class SessID {
 public:
@@ -94,8 +94,24 @@ void setCallback(Hiredis* c, redisReply* reply)
     LOG_DEBUG << "SetCmd " << ZEC_BLUE << redisReplyToString(reply) << ZEC_RESET;
 }
 
+void qConnectCallback(Hiredis* c, int status)
+{
+    if (status == REDIS_OK) {
+        c->command(boost::bind(setCallback, _1, _2), gRedisPass);
+    }
+}
+
+void redisQuery::connect(void)
+{
+    // AUTH Patch
+    hRedis_.setConnectCallback(qConnectCallback);
+    hRedis_.connect();
+}
+
 void redisStore::connect(void)
 {
+    // AUTH Patch
+    hRedis_.setConnectCallback(qConnectCallback);
     loop_->runInLoop(boost::bind(&Hiredis::connect, &hRedis_));
 }
 

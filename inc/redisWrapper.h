@@ -67,7 +67,7 @@ class redisQuery : public boost::enable_shared_from_this<redisQuery>,
   bool connected() const { return hRedis_.connected(); }
   const char* errstr() const { return hRedis_.errstr();  }
 
-  void connect() { hRedis_.connect(); }
+  void connect();
   void disconnect() { hRedis_.disconnect(); }  // FIXME: implement this with redisAsyncDisconnect
 
   void checkLastErr(Session * pSess, const uint8_t *);
