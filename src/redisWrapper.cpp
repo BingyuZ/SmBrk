@@ -99,6 +99,7 @@ void qConnectCallback(Hiredis* c, int status)
     if (status == REDIS_OK) {
         c->command(boost::bind(setCallback, _1, _2), gRedisPass);
     }
+    else LOG_DEBUG << "Redis con failed";
 }
 
 void redisQuery::connect(void)
