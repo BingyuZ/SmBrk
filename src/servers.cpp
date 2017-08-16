@@ -228,7 +228,12 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 		}
         conn->setTcpNoDelay(true);
 
-        Session sess(conn);
+        EntryPtr entry(new Entry(conn));
+        connectionBuckets_.back().insert(entry);
+
+        WeakEntryPtr weakEntry(entry);
+
+        Session sess(conn, weakEntry);
         //SessionPtr pSess(new Session(conn));
         sess.sendWelcome();
 
@@ -280,7 +285,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
         pC1 += 2;
 		uint32_t len = *pC1 * 256 + *(pC1+1);
 
-		if (len < kMinLength - 4)   // Length = 12+
+		if (len > 32768 || len < kMinLength - 4)   // Length = 12+
 		{
 			LOG_WARN << "Invalid packet length " << len;
 			goto errorQuit;
@@ -298,6 +303,10 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 
             assert(!conn->getContext().empty());
             Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
+
+            WeakEntryPtr weakEntry(boost::any_cast<WeakEntryPtr>(pSess->GetPW()));
+            EntryPtr entry(weakEntry.lock());
+            if (entry) connectionBuckets_.back().insert(entry);
 
             cmd = *pC1;
 		    if (cmd == CAA_LOGANS) {   // Decryption not needed for LOGANS.

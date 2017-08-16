@@ -65,6 +65,8 @@ void GConf::PrintPara(void)
 	cout << "Maximum concurrent connections for hooks: " << hookCmax_ << endl;
 
 	cout << "Monitoring port: " << monPort_ << endl;
+
+	cout << "Idle interval: " << idleSeconds_ << endl;
 }
 
 bool GConf::SetPara(ReadConf &r, string &reason)
@@ -98,6 +100,10 @@ bool GConf::SetPara(ReadConf &r, string &reason)
 
 	if (r.GetValue("MONPORT", v)) monPort_ = atoi(v.c_str()); else hookPort_ = 6688;
 	if (hookPort_ <= 0 || hookPort_> 32000)	{ reason = "MONPORT wrong.";	return false;	}
+
+	if (r.GetValue("IDLESEC", v)) idleSeconds_ = atoi(v.c_str()); else idleSeconds_ = 90;
+	if (idleSeconds_ <= 10 || idleSeconds_> 600)	{ reason = "IDLESEC wrong.";	return false;	}
+
 
 	if (r.GetValue("DEBUG", v)) debug_ = atoi(v.c_str());	else debug_ = 0;
 

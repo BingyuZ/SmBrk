@@ -26,8 +26,8 @@ public:
 	int16_t		rds1Thd_;   // Number of Redis server Threads. Ignored at present
 
 	// Ports
-    int16_t		agtPort_;   //
 	int32_t		agtCmax_;   // Maximum concurrent connections for Devices
+    int16_t		agtPort_;   //
 	int16_t     agtDHist_;
 
 	int16_t		cmdPort_;
@@ -37,6 +37,7 @@ public:
 	int16_t		hookCmax_;  // Maximum concurrent connections for Hooks
 
 	int16_t     monPort_;
+	int16_t     idleSeconds_;
 
 public:
 	bool SetPara(class ReadConf &r, std::string &reason);

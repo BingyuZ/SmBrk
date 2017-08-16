@@ -14,6 +14,22 @@
 #include "devInfo.h"
 
 #include <set>
+#include <boost/circular_buffer.hpp>
+#include <boost/unordered_set.hpp>
+#include <boost/version.hpp>
+
+
+#if BOOST_VERSION < 104700
+namespace boost
+{
+template <typename T>
+inline size_t hash_value(const boost::shared_ptr<T>& x)
+{
+  return boost::hash_value(x.get());
+}
+}
+#endif
+
 
 namespace hiredis
 {
@@ -29,18 +45,21 @@ public:
 	AgtServer(EventLoop* loop, const InetAddress& listenAddr,
               int maxConn, const muduo::string& svrName,
               hiredis::redisStore *pSRedis, hiredis::redisQuery *pQRedis,
-              HookServer *pHook
+              HookServer *pHook,
+              int idleSeconds
               )
             : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
 			  server_(loop, listenAddr, svrName),
-			  pSRedis_(pSRedis), pQRedis_(pQRedis), pHook_(pHook)
+			  pSRedis_(pSRedis), pQRedis_(pQRedis), pHook_(pHook),
+			  connectionBuckets_(idleSeconds)
 //			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
 	{
 		server_.setConnectionCallback(boost::bind(&AgtServer::onConnection, this, _1));
 		server_.setMessageCallback(
 //                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
                   boost::bind(&AgtServer::onMessage, this, _1, _2, _3));
-
+        loop->runEvery(5.0, boost::bind(&AgtServer::onTimer, this));
+        connectionBuckets_.resize(idleSeconds);
 	}
 
 	void start()
@@ -86,6 +105,29 @@ protected:
 
 //	MLengthHeaderCodec codec_;
 	MutexLock 		mutex_;
+
+	// Idle treatment
+    void onTimer()
+    {
+        connectionBuckets_.push_back(Bucket());
+    }
+
+    typedef boost::weak_ptr<muduo::net::TcpConnection> WeakTcpConnectionPtr;
+    struct Entry : public muduo::copyable
+    {
+        explicit Entry(const WeakTcpConnectionPtr& weakConn) : weakConn_(weakConn) {}
+        ~Entry()
+        {
+            muduo::net::TcpConnectionPtr conn = weakConn_.lock();
+            if (conn) conn->shutdown();
+        }
+        WeakTcpConnectionPtr weakConn_;
+    };
+    typedef boost::shared_ptr<Entry> EntryPtr;
+    typedef boost::weak_ptr<Entry> WeakEntryPtr;
+    typedef boost::unordered_set<EntryPtr> Bucket;
+    typedef boost::circular_buffer<Bucket> WeakConnectionList;
+    WeakConnectionList connectionBuckets_;
 
 private:
     const static int32_t kMinLength = 0x10;

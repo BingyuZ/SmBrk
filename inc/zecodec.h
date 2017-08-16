@@ -79,8 +79,8 @@ extern uint32_t GetMyRand(bool t=true);
 
 class Session {
 public:
-    explicit Session(const TcpConnectionPtr& conn)
-        : stage_(SC_CHSENT), conn_(conn)
+    explicit Session(const TcpConnectionPtr& conn, const boost::any& pW)
+        : stage_(SC_CHSENT), conn_(conn), pW_(pW)
     {
         rev_ = AU_ENCRY;
         for (int i=0; i<MAXDEV; i++)
@@ -90,7 +90,13 @@ public:
         passwd_[1] = GetMyRand();
     }
 
-    ~Session(){}
+    ~Session()
+    {
+        LOG_TRACE << "Session:" << agentId_ << " destroyed";
+    }
+
+    const boost::any& GetPW(void) const
+    {   return pW_; }
 
     void GeneratePass(void)
     {
@@ -244,6 +250,7 @@ public:
 
  private:
     TcpConnectionPtr conn_;     // Must do! An assignment
+    boost::any       pW_;
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 };
 
