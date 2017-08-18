@@ -86,6 +86,10 @@ void SBSMain(void)
                        gConf.hookCmax_, "TCPHook");
     hookSvr.start();
 
+    CmdServer cmdSvr(&loop, InetAddress(static_cast<uint16_t>(gConf.cmdPort_)),
+                      gConf.cmdCmax_, "CmdServer");
+    cmdSvr.start();
+
 	// Start Agent Listener
     AgtServer agtServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
                        gConf.agtCmax_, "AgentServer", &sRedis, &qRedis, &hookSvr,

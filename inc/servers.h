@@ -74,7 +74,7 @@ public:
     typedef boost::shared_ptr<Session> SessionPtr;
 
 protected:
-    bool CheckCRC(const uint8_t*, uint32_t len);
+//    bool CheckCRC(const uint8_t*, uint32_t len);
 
     int DevStatus(const TcpConnectionPtr&, Session *, const muduo::string&);
     int NewData(const TcpConnectionPtr&, Session *, const muduo::string&);
@@ -163,6 +163,47 @@ public:
 
 protected:
     void onConnection(const TcpConnectionPtr& conn);
+
+    void onMessage(const TcpConnectionPtr& conn, Buffer* buf, Timestamp);
+
+	typedef std::set<TcpConnectionPtr> ConnectionList;
+	ConnectionList	connections_;
+
+	EventLoop* 		loop_;
+	int				kMaxConn_;
+	int				numConnected_;
+
+    TcpServer 		server_;
+   	MutexLock 		mutex_;
+};
+
+class CmdServer
+{
+public:
+    CmdServer(EventLoop* loop, const InetAddress& listenAddr,
+              int maxConn, const muduo::string& svrName)
+            : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
+			  server_(loop, listenAddr, svrName)
+	{
+		server_.setConnectionCallback(boost::bind(&CmdServer::onConnection, this, _1));
+		server_.setMessageCallback(
+//                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
+                  boost::bind(&CmdServer::onMessage, this, _1, _2, _3));
+	}
+
+	void start()
+	{
+		server_.start();
+	}
+
+    virtual ~CmdServer() {}
+
+    unsigned getNumConn(void) { return numConnected_; }
+
+protected:
+    void onConnection(const TcpConnectionPtr& conn);
+
+	bool decrypt(const uint8_t *src, muduo::string *msg, int length);
 
     void onMessage(const TcpConnectionPtr& conn, Buffer* buf, Timestamp);
 

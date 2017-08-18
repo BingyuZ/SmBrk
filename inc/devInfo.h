@@ -92,9 +92,37 @@ struct GPRSInfo {
     uint8_t  ber_;
 };
 
+
+
 struct HookHeader {
     uint8_t len_[2];
     uint8_t dId_[6];
+};
+
+
+
+struct CmdReqs {
+    uint8_t len_;
+    uint8_t type_;
+    uint8_t dID_[6];
+    uint8_t numRegs_;
+    uint8_t regType_;
+    uint8_t startReg_[2];
+    uint8_t value_[0];
+};
+
+struct CmdReply {
+    // General Header
+    uint8_t len_;
+    uint8_t type_;
+    uint8_t dID_[6];
+    // Request
+    uint8_t numRegs_;
+    uint8_t regType_;
+    uint8_t startReg_[2];
+    // Result
+    uint8_t result[4];
+    uint8_t data_[0];
 };
 
 #endif // DEVINFO_H

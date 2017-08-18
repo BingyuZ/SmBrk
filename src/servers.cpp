@@ -262,7 +262,7 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 //  node->lastReceiveTime = time;
 
 // Returns false on error
-bool AgtServer::CheckCRC(const uint8_t *c, uint32_t len)
+bool CheckCRC(const uint8_t *c, uint32_t len)
 {
     // TODO: Check CRC
     return true;
@@ -686,6 +686,110 @@ void HookServer::broadcast(const uint8_t *dId, DevData *pDev, unsigned len)
         }
     }
 }
+
+
+
+
+void CmdServer::onConnection(const TcpConnectionPtr& conn)
+{
+	LOG_INFO << "Cmd: " << conn->localAddress().toIpPort() << " -> "
+			 << conn->peerAddress().toIpPort() << " is "
+			 << (conn->connected() ? "UP" : "DOWN");
+
+	if (conn->connected())
+    {
+		if (numConnected_ > kMaxConn_)	// Exceed connection limit
+		{
+			conn->shutdown();
+			LOG_WARN << "Exceeds maximum connection";
+			return;
+		}
+        conn->setTcpNoDelay(false);
+
+        MutexLockGuard lock(mutex_);
+        ++numConnected_;
+        connections_.insert(conn);
+	}
+	else
+    {
+        MutexLockGuard lock(mutex_);
+		--numConnected_;
+		connections_.erase(conn);
+	}
+}
+
+bool CmdServer::decrypt(const uint8_t *src, muduo::string *msg, int length)
+{
+    msg->reserve(length);
+
+    for (int i=0; i<((length+7)&0xfff8); i+=8) {
+        msg->append((const char *)src, 8);
+        src += 8;
+    }
+    LOG_DEBUG << msg->length() << " bytes decrypted";
+    return true;
+}
+
+void CmdServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
+	  	  	  				muduo::net::Buffer* buf,
+	  	  	  				muduo::Timestamp t)
+{
+    while (buf->readableBytes() >= kMinLength + 4) // kMinLength == 16  exclude CRC
+    {
+		const uint8_t* pC1 = (const uint8_t *) buf->peek();
+
+        if (*pC1 != 'Z' && *(pC1+1) != 'E') {
+			LOG_ERROR << "Wrong packet head " << *pC1 << " " << *(pC1+1);
+			goto errorQuit;
+		}
+
+        pC1 += 2;
+		uint32_t len = *pC1 * 256 + *(pC1+1);
+
+		if (len > 32768 || len < kMinLength - 4)   // Length = 12+
+		{
+			LOG_WARN << "Invalid packet length " << len;
+			goto errorQuit;
+		}
+		else if (buf->readableBytes() >= len + 8)   // Header + CRC
+		{
+		    uint8_t cmd;
+		    if (!CheckCRC(pC1-2, len)) {
+                LOG_WARN << "CRC Error";
+                goto errorQuit;
+		    }
+		    pC1 += 2;
+            buf->retrieve(kHeaderLen);  // 4
+		    LOG_DEBUG << ZEC_CYAN << "Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
+
+            assert(!conn->getContext().empty());
+
+            cmd = *pC1;
+
+		    {
+                muduo::string message;
+                if (!decrypt(pC1, &message, len)) {
+                    LOG_WARN << "Decryption error";
+                    goto errorQuit;
+                }
+                buf->retrieve(len + 4);
+
+                switch (cmd){
+                case CAA_KALIVE:
+                    break;
+                case
+                }
+		    }
+		}
+    }
+    return;
+errorQuit:
+    conn->shutdown(); // FIXME: disable reading
+}
+
+
+
+
 //#endif // 0
 
 
