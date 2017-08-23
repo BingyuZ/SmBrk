@@ -199,6 +199,8 @@ public:
     virtual ~CmdServer() {}
 
     unsigned getNumConn(void) { return numConnected_; }
+    void sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
+                    const void *pBuf, uint32_t length);
 
 protected:
     void onConnection(const TcpConnectionPtr& conn);
@@ -206,6 +208,10 @@ protected:
 	bool decrypt(const uint8_t *src, muduo::string *msg, int length);
 
     void onMessage(const TcpConnectionPtr& conn, Buffer* buf, Timestamp);
+
+    int command(const TcpConnectionPtr& conn, const muduo::string& message);
+
+    int findAndSend(uint64_t dId, const CmdReqs* pCmd);
 
 	typedef std::set<TcpConnectionPtr> ConnectionList;
 	ConnectionList	connections_;
@@ -216,6 +222,9 @@ protected:
 
     TcpServer 		server_;
    	MutexLock 		mutex_;
+
+    const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
+    const static int     kMinLength = 8;
 };
 
 #endif // AGTSERVER_H

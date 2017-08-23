@@ -358,6 +358,9 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                     if (NewData(conn, pSess, message) < 0)
                         goto errorQuit;
                     break;
+                case CAA_CMDRESP:
+
+                    break;
                 default:
                     LOG_WARN << "Unknown command type: " << cmd;
                     //conn->shutdown();
@@ -389,7 +392,7 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
 
         LOG_DEBUG << ZEC_GREEN << "Pos:" << pos << " Type:" << pInfo->type_
                   << " Len:" << pInfo->len_ << " ID:" << Sid << ZEC_RESET;
-        if (pInfo->len_ < 4) {
+        if (pInfo->len_ < 8) {
             LOG_DEBUG << "Invalid dev status length: " << pInfo->len_;
             return -1;
         }
@@ -721,14 +724,96 @@ void CmdServer::onConnection(const TcpConnectionPtr& conn)
 bool CmdServer::decrypt(const uint8_t *src, muduo::string *msg, int length)
 {
     msg->reserve(length);
+    src += 4;
+    if (length < 5) return true;
 
-    for (int i=0; i<((length+7)&0xfff8); i+=8) {
+    for (int i=0; i<((length+3)&0xfff8); i+=8) {
         msg->append((const char *)src, 8);
         src += 8;
     }
     LOG_DEBUG << msg->length() << " bytes decrypted";
     return true;
 }
+
+void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
+                          const void *pBuf, uint32_t length)
+{
+    const char *ptr = (const char *)pBuf;
+
+	assert(length % 8 == 0);
+	assert(length < 65501);
+
+	PacketHeader header;
+    header.cmd_ = type;
+	header.cmdA_ = 0;
+	header.ver_ = ZE_VER;
+    header.rev_ = 0;
+
+	uint32_t first = kSpec + 4 + length;
+
+    muduo::net::Buffer buf;
+    buf.append(&header, 4);
+	buf.prependInt32(first);
+
+	length = (length+7) & 0xfff8;
+
+    for (uint32_t i=0; i<length; i+=8) {
+        buf.append(ptr, 8);
+        ptr += 8;
+    }
+
+    uint32_t crc = 0xbbbbbbbb;   // TODO: Real CRC
+    buf.appendInt32(crc);
+
+    conn->send(&buf);
+
+}
+
+int CmdServer::findAndSend(uint64_t dId, const CmdReqs* pCmd)
+{
+
+}
+
+
+int CmdServer::command(const TcpConnectionPtr& conn, const muduo::string& message)
+{
+    uint16_t pos = 0;
+    uint64_t dId;
+    int ret;
+
+    while (pos + 6 < (uint16_t)message.length()) {
+        CmdReqs *pReq = (CmdReqs *)(message.data() + pos);
+        char Sid[20];
+        CmdReply reply;
+
+        PrintId(pReq->dID_, Sid);
+        LOG_DEBUG << ZEC_RED << "Pos:" << pos << " Type:" << pReq->type_
+                  << " Len:" << pReq->len_ << " ID:" << Sid << ZEC_RESET;
+
+        if (pReq->len_ < 12) {
+            LOG_DEBUG << "Invalid dev status length: " << pReq->len_;
+            return -1;
+        }
+        pos += pReq->len_;
+        if (pos > message.length()) {
+            LOG_DEBUG << "Invalid dev status pos: " << pos;
+            return -2;
+        }
+
+        // TODO:
+        dId = Get64FromDevInfo((DevInfoHeader *)pReq);
+        ret = findAndSend(dId, pReq);
+        if (ret < 0) {
+            LOG_DEBUG << "Device " << Sid << "not found:" << ret;
+            memcpy(&reply, pReq, sizeof(CmdReqs));
+            reply.len_ = sizeof(CmdReqs);
+            reply.type_ = CMD_DEVLOST;
+            sendPacket(conn, CCS_CMDRESP, &reply, sizeof(CmdReqs));
+        }
+    }
+    return 0;
+}
+
 
 void CmdServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
 	  	  	  				muduo::net::Buffer* buf,
@@ -746,7 +831,7 @@ void CmdServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
         pC1 += 2;
 		uint32_t len = *pC1 * 256 + *(pC1+1);
 
-		if (len > 32768 || len < kMinLength - 4)   // Length = 12+
+		if (len > 32768 || len < kMinLength - 4)   // Length = 8+
 		{
 			LOG_WARN << "Invalid packet length " << len;
 			goto errorQuit;
@@ -759,10 +844,10 @@ void CmdServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
                 goto errorQuit;
 		    }
 		    pC1 += 2;
-            buf->retrieve(kHeaderLen);  // 4
+            buf->retrieve(4);  // 4
 		    LOG_DEBUG << ZEC_CYAN << "Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
 
-            assert(!conn->getContext().empty());
+            //assert(!conn->getContext().empty());
 
             cmd = *pC1;
 
@@ -776,11 +861,19 @@ void CmdServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
 
                 switch (cmd){
                 case CAA_KALIVE:
+                    sendPacket(conn, CAS_KALIVE, NULL, 0);
                     break;
-                case
+                case CCA_COMMAND:
+                    if (command(conn, message) < 0) goto errorQuit;
+                    break;
+                default:
+                    LOG_WARN << "Unknown command type: " << cmd;
+                    //conn->shutdown();
+                    break;
                 }
 		    }
 		}
+		else break;
     }
     return;
 errorQuit:
