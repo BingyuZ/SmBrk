@@ -23,14 +23,14 @@ static const char *gRedisPass = "AUTH ZESmBrkTstSvr";
 
 class SessID {
 public:
-    SessID(Session *pSess, const uint8_t *dId) : pSess_(pSess)
+    SessID(const SessionPtr& pSess, const uint8_t *dId) : pSess_(pSess)
     {
         memcpy(Id_, dId, 6);
     }
 
     ~SessID() {}
 
-    Session * pSess_;
+    const SessionPtr& pSess_;
     uint8_t Id_[6];
 };
 
@@ -368,7 +368,7 @@ void DevErrCB(hiredis::Hiredis* c, redisReply* reply, SessID * pSID)
     delete pSID;
 }
 
-void redisQuery::checkLastErr(Session * pSess, const uint8_t * dId)
+void redisQuery::checkLastErr(const SessionPtr& pSess, const uint8_t * dId)
 {
     char Sid[20];
 

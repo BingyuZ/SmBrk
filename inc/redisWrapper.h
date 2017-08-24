@@ -11,8 +11,11 @@ struct DevErrHisF;
 struct DevData;
 struct DevBasic;
 
+
 namespace hiredis
 {
+
+typedef boost::shared_ptr<Session> SessionPtr;
 
 class redisStore : public boost::enable_shared_from_this<redisStore>,
                 boost::noncopyable
@@ -70,7 +73,7 @@ class redisQuery : public boost::enable_shared_from_this<redisQuery>,
   void connect();
   void disconnect() { hRedis_.disconnect(); }  // FIXME: implement this with redisAsyncDisconnect
 
-  void checkLastErr(Session * pSess, const uint8_t *);
+  void checkLastErr(const SessionPtr& pSess, const uint8_t *);
 
  private:
   Hiredis hRedis_;

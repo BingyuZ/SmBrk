@@ -98,7 +98,8 @@ public:
 
     ~Session()
     {
-        LOG_TRACE << "Session:" << agentId_ << " destroyed";
+        //1 From INFO to DEBUG
+        LOG_DEBUG << "Session:" << agentId_ << " destroyed";
     }
 
     const boost::any& GetPW(void) const
@@ -261,12 +262,13 @@ public:
     boost::any       pW_;
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 };
+typedef boost::shared_ptr<Session> SessionPtr;
 
-typedef std::map<uint64_t, Session *> DevMap;
+typedef std::map<uint64_t, SessionPtr> DevMap;
 extern DevMap gDevMap;
 
-void AddMapDev(uint64_t, Session *);
-void DelMapDev(uint64_t, Session *);
+void AddMapDev(uint64_t, SessionPtr);
+void DelMapDev(uint64_t, SessionPtr);
 
 #if 0
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,

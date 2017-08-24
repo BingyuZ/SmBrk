@@ -148,7 +148,6 @@ found:
     devId_[i].sta_ = 1;     // Active
     LOG_DEBUG << "Add dev " << modId << " AT " << i;
 
-    //AddMapDev(dId, this);
     return true;
 }
 
@@ -286,20 +285,26 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 
         WeakEntryPtr weakEntry(entry);
 
-        Session sess(conn, weakEntry);
-        //SessionPtr pSess(new Session(conn));
-        sess.sendWelcome();
+//1        Session sess(conn, weakEntry);
+        SessionPtr pSess(new Session(conn, weakEntry));
+//1        sess.sendWelcome();
+        pSess->sendWelcome();
 
         MutexLockGuard lock(mutex_);
 
         ++numConnected_;
-        conn->setContext(sess);
-        connections_.insert(conn);
+//1        conn->setContext(sess);
+        conn->setContext(pSess);
+
+        sessions_.insert(pSess);
+//2        connections_.insert(conn);
 	}
 	else
     {
-        Session* pSess = boost::any_cast<Session>(conn->getMutableContext());
+//1        Session* pSess = boost::any_cast<Session>(conn->getMutableContext());
+//1        pSess->ResetConn();
 
+        SessionPtr pSess(boost::any_cast<SessionPtr>(conn->getContext()));
         pSess->ResetConn();
 
         MutexLockGuard lock(mutex_);
@@ -307,7 +312,8 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
         //conn->setContext(SessionPtr());
 
 		--numConnected_;
-		connections_.erase(conn);
+		sessions_.erase(pSess);
+//2		connections_.erase(conn);
 	}
 }
 
@@ -356,7 +362,9 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		    LOG_DEBUG << ZEC_CYAN << "Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
 
             assert(!conn->getContext().empty());
-            Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
+//1            Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
+
+            SessionPtr pSess(boost::any_cast<SessionPtr>(conn->getContext()));
 
             WeakEntryPtr weakEntry(boost::any_cast<WeakEntryPtr>(pSess->GetPW()));
             EntryPtr entry(weakEntry.lock());
@@ -431,8 +439,8 @@ errorQuit:
 
 
 int AgtServer::DevStatus(const TcpConnectionPtr& conn,
-                          Session * pSess,
-                          const muduo::string& message)
+                         const SessionPtr& pSess,
+                         const muduo::string& message)
 {
     uint16_t pos = 0;
     std::set<uint64_t> ts;
@@ -518,8 +526,8 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
 }
 
 int AgtServer::NewData(const TcpConnectionPtr& conn,
-                          Session * pSess,
-                          const muduo::string& message)
+                       const SessionPtr& pSess,
+                       const muduo::string& message)
 {
     uint16_t pos = 0;
 

@@ -71,13 +71,17 @@ public:
 
     unsigned getNumConn(void) { return numConnected_; }
 
-    typedef boost::shared_ptr<Session> SessionPtr;
+
 
 protected:
 //    bool CheckCRC(const uint8_t*, uint32_t len);
 
-    int DevStatus(const TcpConnectionPtr&, Session *, const muduo::string&);
-    int NewData(const TcpConnectionPtr&, Session *, const muduo::string&);
+//1    int DevStatus(const TcpConnectionPtr&, Session *, const muduo::string&);
+//1    int NewData(const TcpConnectionPtr&, Session *, const muduo::string&);
+
+    int DevStatus(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+    int NewData(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+
 //    void SaveHistory(const TcpConnectionPtr&, Session *, const muduo::string&);
 //    void DevLost(const TcpConnectionPtr&, Session *, const muduo::string&);
 
@@ -91,8 +95,12 @@ protected:
 						const muduo::string& message,
 						Timestamp);
 
-	typedef std::set<TcpConnectionPtr> ConnectionList;
-	ConnectionList	connections_;
+//	typedef std::set<TcpConnectionPtr> ConnectionList;
+//	ConnectionList	connections_;
+
+    typedef std::set<SessionPtr> SessionList;
+    SessionList     sessions_;
+
 
 	EventLoop* 		loop_;
 	int				kMaxConn_;
