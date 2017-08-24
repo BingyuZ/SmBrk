@@ -17,9 +17,12 @@
 #include <boost/noncopyable.hpp>
 
 #include <cassert>
+#include <map>
 
 using namespace muduo;
 using namespace muduo::net;
+
+using std::map;
 
 #define MAXDEV  16
 #define ZE_VER  1
@@ -199,7 +202,9 @@ public:
 	}
 
 	bool addDevice(const uint8_t *, uint8_t);
-	void delDevice(const uint8_t *);
+	bool addDevice(uint64_t, uint8_t);
+	bool delDevice(const uint8_t *);
+	bool delDevice(uint64_t);
 
 	void sendDevAck(struct DevInfoHeader *);
 	void sendDevHis(const uint8_t *, const struct DevErrHis *);
@@ -256,6 +261,12 @@ public:
     boost::any       pW_;
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 };
+
+typedef std::map<uint64_t, Session *> DevMap;
+extern DevMap gDevMap;
+
+void AddMapDev(uint64_t, Session *);
+void DelMapDev(uint64_t, Session *);
 
 #if 0
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,

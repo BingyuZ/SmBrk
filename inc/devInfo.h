@@ -132,7 +132,7 @@ struct CmdReply {
     uint8_t regType_;
     uint8_t startReg_[2];
     // Result
-    uint8_t result[4];
+    uint8_t result_[4];
     uint8_t data_[0];
 };
 

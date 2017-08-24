@@ -23,6 +23,8 @@ AgtServer::~AgtServer()
 
 extern boost::mt19937 gRng;
 
+DevMap gDevMap;
+
 uint32_t GetMyRand(bool t)
 {
     static uint64_t seed = 0x9ABFF8BF139DF27Full;
@@ -110,19 +112,70 @@ bool Session::addDevice(const uint8_t *dId, uint8_t modId)
     return false;
 }
 
-void Session::delDevice(const uint8_t *dId)
+bool Session::delDevice(const uint8_t *dId)
 {
     int i;
     for (i=0; i<MAXDEV; i++) {
         if (!memcmp(dId, devId_[i].dId_, 6)) {
             devId_[i].sta_ = 0;    // Active
-            return;
+            return true;
         }
     }
     char s[20];
     PrintId(dId, s);
     LOG_DEBUG << "Cannot find " << s << " when deleting device";
+    return false;
 }
+
+#define MASK6 0xffffffffffffull
+bool Session::addDevice(uint64_t dId, uint8_t modId)
+{
+    int i;
+    for (i=0; i<MAXDEV; i++) {
+        if (dId == (devId_[i].uId_ & MASK6))
+            goto found;
+    }
+    for (i=0; i<MAXDEV; i++) {
+        if (devId_[i].sta_ == 0) {
+            devId_[i].uId_ = dId;
+            goto found;
+        }
+    }
+    return false;
+
+found:
+    devId_[i].modId_ = modId;
+    devId_[i].sta_ = 1;     // Active
+    LOG_DEBUG << "Add dev " << modId << " AT " << i;
+
+    //AddMapDev(dId, this);
+    return true;
+}
+
+bool Session::delDevice(uint64_t dId)
+{
+    for (int i=0; i<MAXDEV; i++) {
+        if (dId == (devId_[i].uId_ & MASK6)) {
+            devId_[i].sta_ = 0;    // Active
+            LOG_DEBUG << "Remove dev " << devId_[i].modId_ << " AT " << i;
+            //DelMapDev(dId, this);
+            return true;
+        }
+    }
+    char s[20];
+    sprintf(s, "%lx", dId);
+    LOG_DEBUG << "Cannot find " << s << " when deleting device";
+    return false;
+}
+
+#if 0
+    char s[100];
+    devId_[0].uId_ = dId;
+    devId_[0].modId_ = 2;
+    devId_[0].sta_ = 1;
+    sprintf(s, "Before:%lx  After:%lx", dId, devId_[0].uId_);
+    LOG_DEBUG << "TESTID: " << s;
+#endif
 
 void Session::sendDevAck(DevInfoHeader *pInfo)
 {
@@ -246,6 +299,7 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 	else
     {
         Session* pSess = boost::any_cast<Session>(conn->getMutableContext());
+
         pSess->ResetConn();
 
         MutexLockGuard lock(mutex_);
@@ -407,7 +461,7 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
         case DP_BASIC:
             {
                 DevBasic *pDev = (DevBasic *)pInfo->con_;
-                if (!pSess->addDevice(pInfo->dID_, pDev->modId_)) {
+                if (!pSess->addDevice(dId, pDev->modId_)) {
                     // Too many device?
                     LOG_DEBUG << "Add device error:";
                 }
@@ -424,13 +478,14 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
             }
             break;
         case DP_LOST:
-            pSess->delDevice(pInfo->dID_);
-            pSRedis_->devLogout(pInfo->dID_);
+            if (pSess->delDevice(dId)) {
+                pSRedis_->devLogout(pInfo->dID_);
 
-            // TODO: broadcast device LOST
-            if (ts.count(dId) == 0) {
-                ts.insert(dId);
-                pSess->sendDevAck(pInfo);
+                // TODO: broadcast device LOST
+                if (ts.count(dId) == 0) {
+                    ts.insert(dId);
+                    pSess->sendDevAck(pInfo);
+                }
             }
             break;
         case DP_ERRHIS:
@@ -771,7 +826,7 @@ void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
 
 int CmdServer::findAndSend(uint64_t dId, const CmdReqs* pCmd)
 {
-
+    return -1;
 }
 
 
@@ -806,9 +861,10 @@ int CmdServer::command(const TcpConnectionPtr& conn, const muduo::string& messag
         if (ret < 0) {
             LOG_DEBUG << "Device " << Sid << "not found:" << ret;
             memcpy(&reply, pReq, sizeof(CmdReqs));
+            memset(&reply.result_, 0, 4);
             reply.len_ = sizeof(CmdReqs);
             reply.type_ = CMD_DEVLOST;
-            sendPacket(conn, CCS_CMDRESP, &reply, sizeof(CmdReqs));
+            sendPacket(conn, CCS_CMDRESP, &reply, sizeof(CmdReply));
         }
     }
     return 0;
