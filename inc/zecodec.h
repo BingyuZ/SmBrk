@@ -98,8 +98,8 @@ public:
 
     ~Session()
     {
-        //1 From INFO to DEBUG
-        LOG_DEBUG << "Session:" << agentId_ << " destroyed";
+        //1 From TRACE to DEBUG
+        LOG_TRACE << "Session:" << agentId_ << " destroyed";
     }
 
     const boost::any& GetPW(void) const

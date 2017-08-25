@@ -305,9 +305,23 @@ void AgtServer::onConnection(const TcpConnectionPtr& conn)
 //1        pSess->ResetConn();
 
         SessionPtr pSess(boost::any_cast<SessionPtr>(conn->getContext()));
-        pSess->ResetConn();
 
         MutexLockGuard lock(mutex_);
+        pSess->ResetConn();
+
+        for (int i=0; i<MAXDEV; i++){
+            if (pSess->devId_[i].sta_) {
+                pSess->devId_[i].sta_ = 0;
+                DevMap::iterator it = gDevMap.find(pSess->devId_[i].uId_ & MASK6);
+                if (it != gDevMap.end()) {
+                    if (it->second == pSess) {
+                        LOG_DEBUG << "Dev@Map found and deleted";
+                        gDevMap.erase(it);
+                    }
+                }
+            }
+        }
+
         conn->setContext(NULL);
         //conn->setContext(SessionPtr());
 
@@ -474,6 +488,8 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
                     LOG_DEBUG << "Add device error:";
                 }
                 else {
+                    gDevMap[dId] = pSess;
+
                     pSRedis_->devProp(pInfo->dID_, pDev, pInfo->len_-sizeof(DevInfoHeader));
 
                     // Write device login
@@ -482,11 +498,25 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
 
                     pQRedis_->checkLastErr(pSess, pInfo->dID_);
                 }
-
             }
             break;
         case DP_LOST:
             if (pSess->delDevice(dId)) {
+
+                DevMap::iterator it = gDevMap.find(dId);
+                if (it != gDevMap.end()) {
+                    if (it->second == pSess) {
+                        LOG_DEBUG << "Dev@Map found and deleted";
+                        gDevMap.erase(it);
+                    }
+                    else {
+                        LOG_DEBUG << "Dev is different in map";
+                    }
+                }
+                else {
+                    LOG_DEBUG << "Dev not found in map";
+                }
+
                 pSRedis_->devLogout(pInfo->dID_);
 
                 // TODO: broadcast device LOST
@@ -832,9 +862,15 @@ void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
 
 }
 
+// -1 on not found
 int CmdServer::findAndSend(uint64_t dId, const CmdReqs* pCmd)
 {
-    return -1;
+    DevMap::iterator it = gDevMap.find(dId);
+    if (it == gDevMap.end()) return -1;
+    // We find the session now!
+    // register the operation
+
+    // send request
 }
 
 

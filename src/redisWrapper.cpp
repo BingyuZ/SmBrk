@@ -28,7 +28,9 @@ public:
         memcpy(Id_, dId, 6);
     }
 
-    ~SessID() {}
+    ~SessID() {
+        LOG_DEBUG << "SessID destroyed";
+    }
 
     const SessionPtr& pSess_;
     uint8_t Id_[6];
