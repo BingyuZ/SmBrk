@@ -47,7 +47,6 @@
 			<Add directory="../build/release-install/lib" />
 		</Linker>
 		<Unit filename="inc/Hiredis.h" />
-		<Unit filename="inc/Reqs.h" />
 		<Unit filename="inc/colors.h" />
 		<Unit filename="inc/commons.h" />
 		<Unit filename="inc/devInfo.h" />
@@ -58,7 +57,6 @@
 		<Unit filename="inc/servers.h" />
 		<Unit filename="inc/zecodec.h" />
 		<Unit filename="src/Hiredis.cc" />
-		<Unit filename="src/Reqs.cpp" />
 		<Unit filename="src/SmBrkrS.cpp" />
 		<Unit filename="src/commons.cpp" />
 		<Unit filename="src/gconf.cpp" />

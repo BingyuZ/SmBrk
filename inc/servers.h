@@ -18,6 +18,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/version.hpp>
 
+#include <sys/time.h>
 
 #if BOOST_VERSION < 104700
 namespace boost
@@ -29,6 +30,8 @@ inline size_t hash_value(const boost::shared_ptr<T>& x)
 }
 }
 #endif
+
+typedef boost::weak_ptr<muduo::net::TcpConnection> WeakTcpConnectionPtr;
 
 
 namespace hiredis
@@ -115,12 +118,8 @@ protected:
 	MutexLock 		mutex_;
 
 	// Idle treatment
-    void onTimer()
-    {
-        connectionBuckets_.push_back(Bucket());
-    }
+    void onTimer();
 
-    typedef boost::weak_ptr<muduo::net::TcpConnection> WeakTcpConnectionPtr;
     struct Entry : public muduo::copyable
     {
         explicit Entry(const WeakTcpConnectionPtr& weakConn) : weakConn_(weakConn) {}
@@ -185,6 +184,25 @@ protected:
    	MutexLock 		mutex_;
 };
 
+class ConnStamp {
+public:
+    explicit ConnStamp(WeakTcpConnectionPtr& weakConn)
+        : weakConn_(weakConn)
+    {
+        timeval tv;
+        gettimeofday(&tv, NULL);
+        cStamp_ = tv.tv_sec;
+    }
+    ~ConnStamp() {
+        LOG_DEBUG;
+    }
+
+    WeakTcpConnectionPtr weakConn_;
+    time_t  cStamp_;
+};
+
+typedef boost::shared_ptr<ConnStamp> ConnStPtr;
+
 class CmdServer
 {
 public:
@@ -210,6 +228,9 @@ public:
     void sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
                     const void *pBuf, uint32_t length);
 
+	void clearConn(void);
+	bool sendReply(uint32_t, const CmdReply *, uint32_t);
+
 protected:
     void onConnection(const TcpConnectionPtr& conn);
 
@@ -221,6 +242,11 @@ protected:
 
     int findAndSend(uint64_t dId, const CmdReqs* pCmd);
 
+	bool addConn(const TcpConnectionPtr&, uint32_t *);
+
+	typedef std::map<uint32_t, ConnStPtr> ItemMap;
+	ItemMap map_;
+
 	typedef std::set<TcpConnectionPtr> ConnectionList;
 	ConnectionList	connections_;
 
@@ -229,7 +255,7 @@ protected:
 	int				numConnected_;
 
     TcpServer 		server_;
-   	MutexLock 		mutex_;
+   	MutexLock 		mutex_, mMutex_;
 
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
     const static int     kMinLength = 8;

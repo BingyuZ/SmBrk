@@ -23,6 +23,8 @@ AgtServer::~AgtServer()
 
 extern boost::mt19937 gRng;
 
+#define MAXCROUND   90
+
 DevMap gDevMap;
 
 uint32_t GetMyRand(bool t)
@@ -342,6 +344,11 @@ bool CheckCRC(const uint8_t *c, uint32_t len)
     return true;
 }
 
+void AgtServer::onTimer(void)
+{
+    connectionBuckets_.push_back(Bucket());
+
+}
 
 void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 	  	  	  				muduo::net::Buffer* buf,
@@ -783,8 +790,58 @@ void HookServer::broadcast(const uint8_t *dId, DevData *pDev, unsigned len)
     }
 }
 
+// Delete all outdated pairs
+void CmdServer::clearConn(void)
+{
+    time_t margin;
+    timeval tv;
+    gettimeofday(&tv, NULL);
+    margin = tv.tv_sec - MAXCROUND;
 
+    MutexLockGuard lock(mMutex_);
 
+    ItemMap::iterator it = map_.begin();
+    while (it != map_.end()) {
+        if (it->second->cStamp_ < margin) {
+            map_.erase(it++);   // The compiler will backup it first
+        }
+        else it++;
+    }
+}
+
+bool CmdServer::sendReply(uint32_t cmdIdx, const CmdReply *pReply, uint32_t len)
+{
+    bool result = false;
+
+    ItemMap::iterator it = map_.find(cmdIdx);
+    if (it != map_.end()) {
+        muduo::net::TcpConnectionPtr conn = it->second->weakConn_.lock();
+        if (conn) {
+            // TODO:
+            sendPacket(conn, CCS_CMDRESP, pReply, len);
+            result = true;
+
+            MutexLockGuard lock(mMutex_);
+            map_.erase(it);
+        }
+    }
+    return result;
+}
+
+bool CmdServer::addConn(const TcpConnectionPtr& conn, uint32_t *pCmdIdx)
+{
+    uint32_t idx;
+
+    do {
+        idx = GetMyRand() & 0xfffffful;
+    } while (map_.count(idx) > 0);
+
+    WeakTcpConnectionPtr weakConn(conn);
+    ConnStPtr connPtr(new ConnStamp(weakConn));
+    map_[idx] = connPtr;
+    *pCmdIdx = idx;
+    return true;
+}
 
 void CmdServer::onConnection(const TcpConnectionPtr& conn)
 {
