@@ -44,6 +44,7 @@ uint32_t GetMyRand(bool t)
 
 static const char hexStr[] = "0123456789abcdef";
 
+
 char *GetIdfrom64(uint64_t t)
 {
     static char tId[20];
@@ -442,7 +443,8 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
                         goto errorQuit;
                     break;
                 case CAA_CMDRESP:
-
+					if (CmdResp(conn, pSess, message) < 0)
+						goto errorQuit;
                     break;
                 default:
                     LOG_WARN << "Unknown command type: " << cmd;
@@ -560,6 +562,27 @@ int AgtServer::DevStatus(const TcpConnectionPtr& conn,
         }
     }
     return 0;
+}
+
+int AgtServer::CmdResp(const TcpConnectionPtr& conn,
+                       const SessionPtr& pSess,
+                       const muduo::string& message)
+{
+	int ret = -1;
+	CmdWrapper *wHead = (CmdWrapper *)message.data();
+	if (wHead->len_ <= (uint16_t)message.length() &&
+		wHead->len_ >= 24) 
+	{
+		CmdReply *pReply = (CmdReply *)wHead->content_;
+		if (pReply->len_ <= (uint16_t)message.length() - 8 &&
+			pReply->len_ >= 16)
+		{
+			uint32_t msgID_ = Char6ToUInt32(wHead->msgID_);
+			
+		}
+	}
+quit:
+	return ret;
 }
 
 int AgtServer::NewData(const TcpConnectionPtr& conn,
@@ -790,6 +813,21 @@ void HookServer::broadcast(const uint8_t *dId, DevData *pDev, unsigned len)
     }
 }
 
+
+uint32_t Char6ToUInt32(const char *s)
+{
+	uint32_t v;
+	sscanf(s, "%x", &v);
+	return v;
+}
+
+bool UInt32ToChar6(uint32_t v, char *s)
+{
+	v = v & 0xffffffUL;
+	sprintf(s, "%06x", v);
+	return true;
+}
+
 // Delete all outdated pairs
 void CmdServer::clearConn(void)
 {
@@ -824,6 +862,9 @@ bool CmdServer::sendReply(uint32_t cmdIdx, const CmdReply *pReply, uint32_t len)
             MutexLockGuard lock(mMutex_);
             map_.erase(it);
         }
+		else {
+			LOG_DEBUG << "Command agent disconnected";
+		}
     }
     return result;
 }
@@ -922,12 +963,17 @@ void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
 // -1 on not found
 int CmdServer::findAndSend(uint64_t dId, const CmdReqs* pCmd)
 {
-    DevMap::iterator it = gDevMap.find(dId);
-    if (it == gDevMap.end()) return -1;
+    DevMap::iterator itDM = gDevMap.find(dId);
+    if (itDM == gDevMap.end()) return -1;
+
+	uint32_t reqID;
     // We find the session now!
     // register the operation
-
-    // send request
+	addConn(this, &reqID);
+	// The request will be sent to the agent and not kept any more
+	// length in pCmd->len_
+	// TODO:
+//	itDM->second->Send
 }
 
 

@@ -112,6 +112,13 @@ enum cmdType {
     CMD_REJECT = 0xa1,
 };
 
+struct CmdWrapper {
+	uint8_t len_;
+	uint8_t rev_;
+	uint8_t msgID_[6];
+	uint8_t content_[0];
+};
+
 struct CmdReqs {
     uint8_t len_;
     uint8_t type_;

@@ -262,13 +262,27 @@ public:
     boost::any       pW_;
     const static int32_t kSpec = static_cast<int32_t>(('Z'<<24) | ('E'<<16));
 };
-typedef boost::shared_ptr<Session> SessionPtr;
 
+
+typedef boost::shared_ptr<Session> SessionPtr;
 typedef std::map<uint64_t, SessionPtr> DevMap;
 extern DevMap gDevMap;
 
-void AddMapDev(uint64_t, SessionPtr);
-void DelMapDev(uint64_t, SessionPtr);
+#if 0
+class DevMan {
+public:
+	DevMap() {}
+	~DevMap() {}
+	
+	void add(uint64_t, SessionPtr);
+	void del(uint64_t, SessionPtr);
+private:
+	DevMap	map_;
+	MutexLock 		mutex_;	
+};
+#endif
+
+
 
 #if 0
 typedef boost::function<void (	const muduo::net::TcpConnectionPtr&,

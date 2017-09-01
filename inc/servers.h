@@ -84,6 +84,7 @@ protected:
 
     int DevStatus(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
     int NewData(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
+    int CmdResp(const TcpConnectionPtr&, const SessionPtr&, const muduo::string&);
 
 //    void SaveHistory(const TcpConnectionPtr&, Session *, const muduo::string&);
 //    void DevLost(const TcpConnectionPtr&, Session *, const muduo::string&);
@@ -215,6 +216,8 @@ public:
 		server_.setMessageCallback(
 //                    boost::bind(&MLengthHeaderCodec::onMessagewC, &codec_, _1, _2, _3));
                   boost::bind(&CmdServer::onMessage, this, _1, _2, _3));
+        loop->runEvery(5.0, boost::bind(&CmdServer::clearConn, this));
+
 	}
 
 	void start()
