@@ -79,6 +79,22 @@ uint64_t Get64FromDevInfo(DevInfoHeader *pInfo)
     return r;
 }
 
+uint32_t Char6ToUInt32(const uint8_t *s)
+{
+	uint32_t v;
+	sscanf(s, "%6x", &v);
+	return v;
+}
+
+bool UInt32ToChar6(uint32_t v, char *s)
+{
+	v = v & 0xffffffUL;
+	snprintf(s, 6, "%06x", v);
+	return true;
+}
+
+
+
 static int GetGPRSInfo(GPRSInfo *pInfo, const muduo::string&msg)
 {
     PacketHeader *pHeader = (PacketHeader *)msg.data();
@@ -571,14 +587,14 @@ int AgtServer::CmdResp(const TcpConnectionPtr& conn,
 	int ret = -1;
 	CmdWrapper *wHead = (CmdWrapper *)message.data();
 	if (wHead->len_ <= (uint16_t)message.length() &&
-		wHead->len_ >= 24) 
+		wHead->len_ >= 24)
 	{
 		CmdReply *pReply = (CmdReply *)wHead->content_;
 		if (pReply->len_ <= (uint16_t)message.length() - 8 &&
 			pReply->len_ >= 16)
 		{
 			uint32_t msgID_ = Char6ToUInt32(wHead->msgID_);
-			
+
 		}
 	}
 quit:
@@ -814,20 +830,6 @@ void HookServer::broadcast(const uint8_t *dId, DevData *pDev, unsigned len)
 }
 
 
-uint32_t Char6ToUInt32(const char *s)
-{
-	uint32_t v;
-	sscanf(s, "%x", &v);
-	return v;
-}
-
-bool UInt32ToChar6(uint32_t v, char *s)
-{
-	v = v & 0xffffffUL;
-	sprintf(s, "%06x", v);
-	return true;
-}
-
 // Delete all outdated pairs
 void CmdServer::clearConn(void)
 {
@@ -961,7 +963,7 @@ void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
 }
 
 // -1 on not found
-int CmdServer::findAndSend(uint64_t dId, const CmdReqs* pCmd)
+int CmdServer::findAndSend(const TcpConnectionPtr& conn, uint64_t dId, const CmdReqs* pCmd)
 {
     DevMap::iterator itDM = gDevMap.find(dId);
     if (itDM == gDevMap.end()) return -1;
@@ -969,7 +971,7 @@ int CmdServer::findAndSend(uint64_t dId, const CmdReqs* pCmd)
 	uint32_t reqID;
     // We find the session now!
     // register the operation
-	addConn(this, &reqID);
+	addConn(conn, &reqID);
 	// The request will be sent to the agent and not kept any more
 	// length in pCmd->len_
 	// TODO:
@@ -1004,7 +1006,7 @@ int CmdServer::command(const TcpConnectionPtr& conn, const muduo::string& messag
 
         // TODO:
         dId = Get64FromDevInfo((DevInfoHeader *)pReq);
-        ret = findAndSend(dId, pReq);
+        ret = findAndSend(conn, dId, pReq);
         if (ret < 0) {
             LOG_DEBUG << "Device " << Sid << "not found:" << ret;
             memcpy(&reply, pReq, sizeof(CmdReqs));

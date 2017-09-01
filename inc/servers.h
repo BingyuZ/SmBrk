@@ -243,7 +243,7 @@ protected:
 
     int command(const TcpConnectionPtr& conn, const muduo::string& message);
 
-    int findAndSend(uint64_t dId, const CmdReqs* pCmd);
+    int findAndSend(const TcpConnectionPtr&, uint64_t dId, const CmdReqs* pCmd);
 
 	bool addConn(const TcpConnectionPtr&, uint32_t *);
 
