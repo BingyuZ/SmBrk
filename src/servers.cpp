@@ -82,7 +82,7 @@ uint64_t Get64FromDevInfo(DevInfoHeader *pInfo)
 uint32_t Char6ToUInt32(const uint8_t *s)
 {
 	uint32_t v;
-	sscanf(s, "%6x", &v);
+	sscanf((const char *)s, "%6x", &v);
 	return v;
 }
 
