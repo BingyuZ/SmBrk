@@ -92,7 +92,8 @@ void SBSMain(void)
 
 	// Start Agent Listener
     AgtServer agtServer(&loop, InetAddress(static_cast<uint16_t>(gConf.agtPort_)),
-                       gConf.agtCmax_, "AgentServer", &sRedis, &qRedis, &hookSvr,
+                       gConf.agtCmax_, "AgentServer", &sRedis, &qRedis,
+                       &hookSvr, &cmdSvr,
                        gConf.idleSeconds_/5);
     agtServer.start();
 

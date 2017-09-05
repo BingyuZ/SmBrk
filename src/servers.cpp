@@ -86,10 +86,10 @@ uint32_t Char6ToUInt32(const uint8_t *s)
 	return v;
 }
 
-bool UInt32ToChar6(uint32_t v, char *s)
+bool UInt32ToChar6(uint32_t v, uint8_t *s)
 {
 	v = v & 0xffffffUL;
-	snprintf(s, 6, "%06x", v);
+	snprintf((char *)s, 6, "%06x", v);
 	return true;
 }
 
@@ -364,7 +364,6 @@ bool CheckCRC(const uint8_t *c, uint32_t len)
 void AgtServer::onTimer(void)
 {
     connectionBuckets_.push_back(Bucket());
-
 }
 
 void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
@@ -593,11 +592,13 @@ int AgtServer::CmdResp(const TcpConnectionPtr& conn,
 		if (pReply->len_ <= (uint16_t)message.length() - 8 &&
 			pReply->len_ >= 16)
 		{
-			uint32_t msgID_ = Char6ToUInt32(wHead->msgID_);
-
+			uint32_t msgID = Char6ToUInt32(wHead->msgID_);
+			if (msgID > 0) {
+                if (pCmd_->sendReply(msgID, pReply))
+                    ret = 0;
+			}
 		}
 	}
-quit:
 	return ret;
 }
 
@@ -849,7 +850,7 @@ void CmdServer::clearConn(void)
     }
 }
 
-bool CmdServer::sendReply(uint32_t cmdIdx, const CmdReply *pReply, uint32_t len)
+bool CmdServer::sendReply(uint32_t cmdIdx, const CmdReply *pReply)
 {
     bool result = false;
 
@@ -858,7 +859,7 @@ bool CmdServer::sendReply(uint32_t cmdIdx, const CmdReply *pReply, uint32_t len)
         muduo::net::TcpConnectionPtr conn = it->second->weakConn_.lock();
         if (conn) {
             // TODO:
-            sendPacket(conn, CCS_CMDRESP, pReply, len);
+            sendPacket(conn, CCS_CMDRESP, pReply, pReply->len_);
             result = true;
 
             MutexLockGuard lock(mMutex_);
@@ -877,7 +878,7 @@ bool CmdServer::addConn(const TcpConnectionPtr& conn, uint32_t *pCmdIdx)
 
     do {
         idx = GetMyRand() & 0xfffffful;
-    } while (map_.count(idx) > 0);
+    } while (idx != 0 && map_.count(idx) > 0);
 
     WeakTcpConnectionPtr weakConn(conn);
     ConnStPtr connPtr(new ConnStamp(weakConn));
@@ -965,17 +966,25 @@ void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
 // -1 on not found
 int CmdServer::findAndSend(const TcpConnectionPtr& conn, uint64_t dId, const CmdReqs* pCmd)
 {
+    uint8_t buf[pCmd->len_ + 8];
+
     DevMap::iterator itDM = gDevMap.find(dId);
     if (itDM == gDevMap.end()) return -1;
 
-	uint32_t reqID;
     // We find the session now!
     // register the operation
+	uint32_t reqID;
 	addConn(conn, &reqID);
-	// The request will be sent to the agent and not kept any more
-	// length in pCmd->len_
-	// TODO:
-//	itDM->second->Send
+
+	CmdWrapper *pWrapper = (CmdWrapper *)buf;
+	pWrapper->len_ = pCmd->len_ + 8;
+	pWrapper->rev_ = 0;
+	UInt32ToChar6(reqID, pWrapper->msgID_);
+
+    memcpy(pWrapper->content_, pCmd, pCmd->len_);
+
+	itDM->second->sendPacket(CAS_COMMAND, pWrapper, pCmd->len_ + 8);
+	return 0;
 }
 
 
@@ -994,7 +1003,7 @@ int CmdServer::command(const TcpConnectionPtr& conn, const muduo::string& messag
         LOG_DEBUG << ZEC_RED << "Pos:" << pos << " Type:" << pReq->type_
                   << " Len:" << pReq->len_ << " ID:" << Sid << ZEC_RESET;
 
-        if (pReq->len_ < 12) {
+        if (pReq->len_ < 12 || pReq->len_ > 200) {
             LOG_DEBUG << "Invalid dev status length: " << pReq->len_;
             return -1;
         }

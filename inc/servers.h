@@ -41,6 +41,7 @@ class redisQuery;
 }
 
 class HookServer;
+class CmdServer;
 
 class AgtServer
 {
@@ -48,12 +49,12 @@ public:
 	AgtServer(EventLoop* loop, const InetAddress& listenAddr,
               int maxConn, const muduo::string& svrName,
               hiredis::redisStore *pSRedis, hiredis::redisQuery *pQRedis,
-              HookServer *pHook,
+              HookServer *pHook, CmdServer *pCmd,
               int idleSeconds
               )
             : loop_(loop), kMaxConn_(maxConn), numConnected_(0),
 			  server_(loop, listenAddr, svrName),
-			  pSRedis_(pSRedis), pQRedis_(pQRedis), pHook_(pHook),
+			  pSRedis_(pSRedis), pQRedis_(pQRedis), pHook_(pHook), pCmd_(pCmd),
 			  connectionBuckets_(idleSeconds)
 //			  codec_(boost::bind(&AgtServer::onBlockMessage, this, _1, _2, _3))
 	{
@@ -114,6 +115,7 @@ protected:
     hiredis::redisStore *pSRedis_;
     hiredis::redisQuery *pQRedis_;
     HookServer      *pHook_;
+    CmdServer       *pCmd_;
 
 //	MLengthHeaderCodec codec_;
 	MutexLock 		mutex_;
@@ -232,7 +234,7 @@ public:
                     const void *pBuf, uint32_t length);
 
 	void clearConn(void);
-	bool sendReply(uint32_t, const CmdReply *, uint32_t);
+	bool sendReply(uint32_t, const CmdReply *);
 
 protected:
     void onConnection(const TcpConnectionPtr& conn);
