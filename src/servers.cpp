@@ -44,7 +44,7 @@ uint32_t GetMyRand(bool t)
 
 static const char hexStr[] = "0123456789abcdef";
 
-
+// NOTE: Not thread safe!!!
 char *GetIdfrom64(uint64_t t)
 {
     static char tId[20];
@@ -88,8 +88,14 @@ uint32_t Char6ToUInt32(const uint8_t *s)
 
 bool UInt32ToChar6(uint32_t v, uint8_t *s)
 {
-	v = v & 0xffffffUL;
-	snprintf((char *)s, 6, "%06x", v);
+    uint8_t k;
+    v &= 0xffffffull;
+    for (int i=0; i<3; i++) {
+        k = (v >> 16);
+        v <<= 8;
+        *s++ = hexStr[k/16];
+        *s++ = hexStr[k%16];
+    }
 	return true;
 }
 
@@ -396,7 +402,7 @@ void AgtServer::onMessage(  const muduo::net::TcpConnectionPtr& conn,
 		    }
 		    pC1 += 2;
             buf->retrieve(kHeaderLen);  // 4
-		    LOG_DEBUG << ZEC_CYAN << "Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
+		    LOG_DEBUG << ZEC_CYAN << "A Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
 
             assert(!conn->getContext().empty());
 //1            Session *pSess  = boost::any_cast<Session>(conn->getMutableContext());
@@ -583,22 +589,28 @@ int AgtServer::CmdResp(const TcpConnectionPtr& conn,
                        const SessionPtr& pSess,
                        const muduo::string& message)
 {
-	int ret = -1;
+	int ret = -4;
 	CmdWrapper *wHead = (CmdWrapper *)message.data();
 	if (wHead->len_ <= (uint16_t)message.length() &&
 		wHead->len_ >= 24)
 	{
+	    ret = -3;
 		CmdReply *pReply = (CmdReply *)wHead->content_;
 		if (pReply->len_ <= (uint16_t)message.length() - 8 &&
 			pReply->len_ >= 16)
 		{
 			uint32_t msgID = Char6ToUInt32(wHead->msgID_);
+			ret = -2;
 			if (msgID > 0) {
                 if (pCmd_->sendReply(msgID, pReply))
                     ret = 0;
 			}
 		}
 	}
+	if (ret < 0) {
+        LOG_DEBUG << "Cmd reply err:" << ret << ". Connection closed";
+	}
+
 	return ret;
 }
 
@@ -853,13 +865,14 @@ void CmdServer::clearConn(void)
 bool CmdServer::sendReply(uint32_t cmdIdx, const CmdReply *pReply)
 {
     bool result = false;
+    int len;
 
     ItemMap::iterator it = map_.find(cmdIdx);
     if (it != map_.end()) {
         muduo::net::TcpConnectionPtr conn = it->second->weakConn_.lock();
         if (conn) {
-            // TODO:
-            sendPacket(conn, CCS_CMDRESP, pReply, pReply->len_);
+            len = (pReply->len_ + 6) & 0xfff8;
+            sendPacket(conn, CCS_CMDRESP, pReply, len);
             result = true;
 
             MutexLockGuard lock(mMutex_);
@@ -878,6 +891,9 @@ bool CmdServer::addConn(const TcpConnectionPtr& conn, uint32_t *pCmdIdx)
 
     do {
         idx = GetMyRand() & 0xfffffful;
+        // TEST ONLY
+        // static int bec = 0x101;
+        // idx = bec++;
     } while (idx != 0 && map_.count(idx) > 0);
 
     WeakTcpConnectionPtr weakConn(conn);
@@ -966,7 +982,7 @@ void CmdServer::sendPacket(const TcpConnectionPtr& conn, CommandAgt type,
 // -1 on not found
 int CmdServer::findAndSend(const TcpConnectionPtr& conn, uint64_t dId, const CmdReqs* pCmd)
 {
-    uint8_t buf[pCmd->len_ + 8];
+    uint8_t buf[pCmd->len_ + 16];
 
     DevMap::iterator itDM = gDevMap.find(dId);
     if (itDM == gDevMap.end()) return -1;
@@ -977,13 +993,14 @@ int CmdServer::findAndSend(const TcpConnectionPtr& conn, uint64_t dId, const Cmd
 	addConn(conn, &reqID);
 
 	CmdWrapper *pWrapper = (CmdWrapper *)buf;
-	pWrapper->len_ = pCmd->len_ + 8;
+	pWrapper->len_ = (pCmd->len_ + 8 + 7) & 0xf8;
+
 	pWrapper->rev_ = 0;
 	UInt32ToChar6(reqID, pWrapper->msgID_);
 
     memcpy(pWrapper->content_, pCmd, pCmd->len_);
 
-	itDM->second->sendPacket(CAS_COMMAND, pWrapper, pCmd->len_ + 8);
+	itDM->second->sendPacket(CAS_COMMAND, pWrapper, pWrapper->len_);
 	return 0;
 }
 
@@ -1059,7 +1076,7 @@ void CmdServer::onMessage( const muduo::net::TcpConnectionPtr& conn,
 		    }
 		    pC1 += 2;
             buf->retrieve(4);  // 4
-		    LOG_DEBUG << ZEC_CYAN << "Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
+		    LOG_DEBUG << ZEC_CYAN << "C Packet received, len=" << len << ", Type: " << 0L+*pC1 << ZEC_RESET;
 
             //assert(!conn->getContext().empty());
 

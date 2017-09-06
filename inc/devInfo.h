@@ -103,13 +103,13 @@ struct HookHeader {
 enum cmdType {
     CMD_UNKNOWN = 0,
 
-    CMD_GERREGS = 0x10,
+    CMD_GETREGS = 0x10,
     CMD_SETREGS = 0x20,
     CMD_MASKREGS = 0x30,
 
-    CMD_ACK = 0x90,
-    CMD_DEVLOST = 0xa0,
-    CMD_REJECT = 0xa1,
+    CMD_DEVLOST = 0x81,
+    CMD_REJECT = 0x82,
+
 };
 
 struct CmdWrapper {
